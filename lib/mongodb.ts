@@ -1,3 +1,5 @@
+import dns from "node:dns";
+import { Resolver } from "node:dns/promises";
 import { MongoClient, Db, type Collection, type MongoClientOptions } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
@@ -7,23 +9,128 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-/**
- * Atlas on Vercel often fails TLS with the legacy host list + ssl=true string.
- * On Vercel we convert to mongodb+srv (SRV DNS works there).
- * Locally many Windows DNS setups refuse SRV lookups, so keep the host list.
- */
-function normalizeMongoUri(raw: string): string {
-  let value = raw.trim();
+const PUBLIC_DNS = ["8.8.8.8", "8.8.4.4", "1.1.1.1"];
 
-  // Strip wrapping quotes that sometimes get pasted into Vercel env vars
+if (!process.env.VERCEL) {
+  try {
+    dns.setServers(PUBLIC_DNS);
+  } catch {
+    // Some environments lock the resolver; we still rewrite +srv below.
+  }
+}
+
+function stripMongoUri(raw: string): string {
+  let value = raw.trim();
   if (
     (value.startsWith('"') && value.endsWith('"')) ||
     (value.startsWith("'") && value.endsWith("'"))
   ) {
     value = value.slice(1, -1);
   }
+  return value;
+}
+
+function parseMongoUri(value: string) {
+  const m = value.match(
+    /^(mongodb(?:\+srv)?):\/\/([^@]+)@([^/?]+)(?:\/([^?]*))?(?:\?(.*))?$/i
+  );
+  if (!m) return null;
+  return {
+    scheme: m[1].toLowerCase(),
+    auth: m[2],
+    host: m[3],
+    dbName: m[4] ?? "",
+    query: m[5] ?? "",
+  };
+}
+
+function seedListUri(
+  auth: string,
+  dbName: string,
+  query: string,
+  seeds: string[]
+): string {
+  const params = new URLSearchParams(query);
+  params.delete("ssl");
+  if (!params.has("tls")) params.set("tls", "true");
+  if (!params.has("retryWrites")) params.set("retryWrites", "true");
+  if (!params.has("w")) params.set("w", "majority");
+  if (!params.has("authSource")) params.set("authSource", "admin");
+  if (!params.has("appName") && !params.has("appname")) {
+    params.set("appName", "fragnance");
+  }
+  const path = dbName ? `/${dbName}` : "/";
+  return `mongodb://${auth}@${seeds.join(",")}${path}?${params.toString()}`;
+}
+
+/** Atlas SRV host cluster0.xxxx.mongodb.net → shard-00-00/01/02 seed list */
+function guessedAtlasSeeds(hostname: string): string[] {
+  const host = hostname.replace(/:\d+$/, "");
+  const dot = host.indexOf(".");
+  if (dot < 1 || !/\.mongodb\.net$/i.test(host)) return [];
+  const cluster = host.slice(0, dot);
+  const rest = host.slice(dot + 1);
+  return [0, 1, 2].map((n) => `${cluster}-shard-00-0${n}.${rest}:27017`);
+}
+
+function srvToGuessedSeedUri(value: string): string | null {
+  const parsed = parseMongoUri(value);
+  if (!parsed) return null;
+  const seeds = guessedAtlasSeeds(parsed.host);
+  if (!seeds.length) return null;
+  return seedListUri(parsed.auth, parsed.dbName, parsed.query, seeds);
+}
+
+/**
+ * Windows ISP DNS often returns EREFUSED for `_mongodb._tcp.*`.
+ * Resolve SRV via public DNS (or guessed Atlas hosts) and connect without +srv.
+ */
+async function srvToStandardUri(value: string): Promise<string> {
+  const parsed = parseMongoUri(value);
+  if (!parsed) return ensureSrvQuery(value);
+
+  const hostname = parsed.host.replace(/:\d+$/, "");
+  try {
+    const resolver = new Resolver();
+    resolver.setServers(PUBLIC_DNS);
+    const records = await resolver.resolveSrv(`_mongodb._tcp.${hostname}`);
+    const seeds = records
+      .sort((a, b) => a.priority - b.priority || b.weight - a.weight)
+      .map((r) => `${r.name.replace(/\.$/, "")}:${r.port}`);
+    if (!seeds.length) throw new Error("empty SRV");
+
+    let query = parsed.query;
+    try {
+      const txt = await resolver.resolveTxt(hostname);
+      const extra = new URLSearchParams(txt.flat().join("").replace(/"/g, ""));
+      const params = new URLSearchParams(query);
+      extra.forEach((v, k) => {
+        if (!params.has(k)) params.set(k, v);
+      });
+      query = params.toString();
+    } catch {
+      // TXT is optional
+    }
+
+    return seedListUri(parsed.auth, parsed.dbName, query, seeds);
+  } catch {
+    const guessed = srvToGuessedSeedUri(value);
+    return guessed ?? ensureSrvQuery(value);
+  }
+}
+
+/**
+ * Atlas on Vercel often fails TLS with the legacy host list + ssl=true string.
+ * On Vercel we convert to mongodb+srv (SRV DNS works there).
+ * Locally many Windows DNS setups refuse SRV lookups, so keep the host list.
+ */
+function normalizeMongoUri(raw: string): string {
+  let value = stripMongoUri(raw);
 
   if (value.startsWith("mongodb+srv://")) {
+    if (!process.env.VERCEL) {
+      return srvToGuessedSeedUri(value) ?? ensureSrvQuery(value);
+    }
     return ensureSrvQuery(value);
   }
 
@@ -98,12 +205,20 @@ function clientOptions(): MongoClientOptions {
   };
 }
 
-function createClientPromise(): Promise<MongoClient> {
+async function resolveMongoUri(raw: string): Promise<string> {
+  const value = stripMongoUri(raw);
+  if (value.startsWith("mongodb+srv://") && !process.env.VERCEL) {
+    return srvToStandardUri(value);
+  }
+  return normalizeMongoUri(raw);
+}
+
+async function createClientPromise(): Promise<MongoClient> {
   if (!uri) {
     throw new Error("Missing MONGODB_URI in environment");
   }
 
-  const normalized = normalizeMongoUri(uri);
+  const normalized = await resolveMongoUri(uri);
   const client = new MongoClient(normalized, clientOptions());
   return client.connect();
 }

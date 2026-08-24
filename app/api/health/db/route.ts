@@ -36,10 +36,14 @@ export async function GET() {
     const causeMessage =
       err.cause instanceof Error ? err.cause.message : undefined;
 
-    const hint =
-      /alert number 80|TLSV1_ALERT_INTERNAL_ERROR|ssl3_read_bytes/i.test(
-        err.message + (causeMessage ?? "")
-      )
+    const combined = `${err.message} ${causeMessage ?? ""}`;
+    const hint = /querySrv|EREFUSED|_mongodb\._tcp/i.test(combined)
+      ? [
+          "Local DNS refused the Atlas SRV lookup (common on Windows ISPs).",
+          "Restart `npm run dev` after this fix, or in Atlas → Connect → Drivers pick the standard mongodb:// host-list URI instead of mongodb+srv://.",
+          "Also allow your IP (or 0.0.0.0/0) under Atlas → Network Access, and confirm the cluster is not Paused.",
+        ].join(" ")
+      : /alert number 80|TLSV1_ALERT_INTERNAL_ERROR|ssl3_read_bytes/i.test(combined)
         ? [
             "Atlas aborted the TLS handshake (alert 80). This is almost never a bad password — Atlas does that when your IP is not allowed.",
             "Fix: MongoDB Atlas → Network Access → Add IP Address → Allow Access from Anywhere → 0.0.0.0/0 → Confirm.",
