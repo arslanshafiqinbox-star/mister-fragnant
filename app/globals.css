@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+@keyframes ticker-slide {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ticker-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-slide 22s linear infinite;
+  will-change: transform;
+}
+
+.ticker-strip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0;
+}
+
+.ticker-item {
+  flex-shrink: 0;
+  padding: 0 1.75rem;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+@media (min-width: 640px) {
+  .ticker-item {
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track,
+  .footer-ticker-track,
+  .fragrance-strip-track {
+    animation: none;
+  }
+}
+
+.footer-ticker-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.footer-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-slide 20s linear infinite;
+  will-change: transform;
+}
+
+.footer-ticker-strip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 0 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .footer-ticker-strip {
+    gap: 3.5rem;
+    padding: 0 1.75rem;
+  }
+}
+
+.fragrance-strip-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.fragrance-strip-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-slide 28s linear infinite;
+  will-change: transform;
+}
+
+.fragrance-strip-track--dense {
+  /* Three copies → animate -33.333% for a seamless loop */
+  animation-name: fragrance-strip-slide;
+  animation-duration: 36s;
+}
+
+@keyframes fragrance-strip-slide {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-33.333%, 0, 0);
+  }
+}
+
+.fragrance-strip-row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-end;
+}
+
+/* Double-line track + black square thumb (1–10 stepped) */
+.rating-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rating-slider:focus {
+  outline: none;
+}
+
+.rating-slider::-webkit-slider-runnable-track {
+  height: 5px;
+  background: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 1px,
+    transparent 1px,
+    transparent 4px,
+    #000 4px,
+    #000 5px
+  );
+  border: none;
+}
+
+.rating-slider::-moz-range-track {
+  height: 5px;
+  background: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 1px,
+    transparent 1px,
+    transparent 4px,
+    #000 4px,
+    #000 5px
+  );
+  border: none;
+}
+
+.rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -3.5px;
+  background: #000;
+  border: none;
+  border-radius: 0;
+}
+
+.rating-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #000;
+  border: none;
+  border-radius: 0;
+}
