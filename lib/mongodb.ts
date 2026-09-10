@@ -273,6 +273,12 @@ export async function getConnectionTestsCollection(): Promise<
   return db.collection<ConnectionTestDoc>("connection_tests");
 }
 
+export type NamedEntityCollectionName =
+  | "scent_type"
+  | "occasion"
+  | "gender"
+  | "strength";
+
 export type NamedEntityDoc = {
   _id?: import("mongodb").ObjectId;
   name: string;
@@ -280,7 +286,7 @@ export type NamedEntityDoc = {
 };
 
 export async function getNamedEntityCollection(
-  name: "scent_type" | "occasion"
+  name: NamedEntityCollectionName
 ): Promise<Collection<NamedEntityDoc>> {
   const db = await getDb();
   return db.collection<NamedEntityDoc>(name);
@@ -297,6 +303,9 @@ export type FragranceDoc = {
   brand: string;
   occasion: import("mongodb").ObjectId[];
   scent_type: import("mongodb").ObjectId[];
+  gender?: import("mongodb").ObjectId[];
+  strength?: import("mongodb").ObjectId[];
+  approx_price?: string | null;
   associate_links: AssociateLink[];
   created_at: Date;
   updated_at: Date;
@@ -403,6 +412,8 @@ export type AlternativeDoc = {
   name: string;
   scent_type: import("mongodb").ObjectId[];
   occasion: import("mongodb").ObjectId[];
+  gender?: import("mongodb").ObjectId[];
+  strength?: import("mongodb").ObjectId[];
   comparison: AlternativeComparison;
   created_at: Date;
   updated_at: Date;

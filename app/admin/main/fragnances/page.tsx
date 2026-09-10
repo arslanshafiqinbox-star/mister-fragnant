@@ -20,6 +20,9 @@ type FragranceRow = {
   brand: string;
   occasion: string[];
   scent_type: string[];
+  gender: string[];
+  strength: string[];
+  approx_price: string | null;
   associate_links: AssociateLink[];
 };
 
@@ -30,6 +33,9 @@ type FormState = {
   brand: string;
   scent_type: string[];
   occasion: string[];
+  gender: string[];
+  strength: string[];
+  approx_price: string;
   associate_links: AssociateLink[];
 };
 
@@ -38,6 +44,9 @@ const empty: FormState = {
   brand: "",
   scent_type: [],
   occasion: [],
+  gender: [],
+  strength: [],
+  approx_price: "",
   associate_links: [{ name: "", link: "" }],
 };
 
@@ -49,6 +58,8 @@ export default function AdminFragnancesPage() {
   const [rows, setRows] = useState<FragranceRow[]>([]);
   const [scentTypes, setScentTypes] = useState<NamedEntity[]>([]);
   const [occasions, setOccasions] = useState<NamedEntity[]>([]);
+  const [genders, setGenders] = useState<NamedEntity[]>([]);
+  const [strengths, setStrengths] = useState<NamedEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
@@ -70,20 +81,26 @@ export default function AdminFragnancesPage() {
     setLoading(true);
     setError(null);
     try {
-      const [fRes, sRes, oRes] = await Promise.all([
+      const [fRes, sRes, oRes, gRes, stRes] = await Promise.all([
         fetch("/api/fragrance"),
         fetch("/api/scent-type"),
         fetch("/api/occasion"),
+        fetch("/api/gender"),
+        fetch("/api/strength"),
       ]);
-      const [fJson, sJson, oJson] = await Promise.all([
+      const [fJson, sJson, oJson, gJson, stJson] = await Promise.all([
         fRes.json(),
         sRes.json(),
         oRes.json(),
+        gRes.json(),
+        stRes.json(),
       ]);
       if (!fJson.ok) throw new Error(fJson.message || "Failed to load");
       setRows(fJson.rows ?? []);
       setScentTypes(sJson.rows ?? []);
       setOccasions(oJson.rows ?? []);
+      setGenders(gJson.rows ?? []);
+      setStrengths(stJson.rows ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -107,8 +124,11 @@ export default function AdminFragnancesPage() {
     setForm({
       name: row.name,
       brand: row.brand,
-      scent_type: row.scent_type,
-      occasion: row.occasion,
+      scent_type: row.scent_type ?? [],
+      occasion: row.occasion ?? [],
+      gender: row.gender ?? [],
+      strength: row.strength ?? [],
+      approx_price: row.approx_price ?? "",
       associate_links:
         row.associate_links.length > 0
           ? row.associate_links
@@ -137,6 +157,9 @@ export default function AdminFragnancesPage() {
         brand: form.brand.trim(),
         scent_type: form.scent_type,
         occasion: form.occasion,
+        gender: form.gender,
+        strength: form.strength,
+        approx_price: form.approx_price.trim() || null,
         associate_links: links,
       };
       const res = await fetch("/api/fragrance", {
@@ -204,20 +227,23 @@ export default function AdminFragnancesPage() {
 
       {!loading && !error ? (
         <div className="overflow-x-auto border border-black bg-white shadow-[3px_3px_0_#000]">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="border-b border-black bg-neutral-50 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em]">
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Scent type</th>
                 <th className="px-4 py-3">Occasion</th>
+                <th className="px-4 py-3">Gender</th>
+                <th className="px-4 py-3">Strength</th>
+                <th className="px-4 py-3">Approx. price</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-neutral-400">
+                  <td colSpan={8} className="px-4 py-8 text-neutral-400">
                     No fragrances yet.
                   </td>
                 </tr>
@@ -232,10 +258,19 @@ export default function AdminFragnancesPage() {
                       {row.brand || "—"}
                     </td>
                     <td className="px-4 py-3 text-neutral-600">
-                      {nameById(row.scent_type, scentTypes)}
+                      {nameById(row.scent_type ?? [], scentTypes)}
                     </td>
                     <td className="px-4 py-3 text-neutral-600">
-                      {nameById(row.occasion, occasions)}
+                      {nameById(row.occasion ?? [], occasions)}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-600">
+                      {nameById(row.gender ?? [], genders)}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-600">
+                      {nameById(row.strength ?? [], strengths)}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-600">
+                      {row.approx_price || "—"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
@@ -284,6 +319,16 @@ export default function AdminFragnancesPage() {
                 onChange={(e) => setForm({ ...form, brand: e.target.value })}
               />
             </Field>
+            <Field label="Approx. price (optional)">
+              <input
+                className={adminInput}
+                value={form.approx_price}
+                onChange={(e) =>
+                  setForm({ ...form, approx_price: e.target.value })
+                }
+                placeholder="£145"
+              />
+            </Field>
 
             <Field label="Scent type">
               <div className="flex flex-wrap gap-2">
@@ -330,6 +375,66 @@ export default function AdminFragnancesPage() {
                     {item.name}
                   </button>
                 ))}
+              </div>
+            </Field>
+
+            <Field label="Gender">
+              <div className="flex flex-wrap gap-2">
+                {genders.length === 0 ? (
+                  <p className="text-sm text-neutral-400">
+                    No genders yet — add them under Gender.
+                  </p>
+                ) : (
+                  genders.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          gender: toggleId(form.gender, item.id),
+                        })
+                      }
+                      className={`${adminBtn} ${
+                        form.gender.includes(item.id)
+                          ? "bg-black text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </Field>
+
+            <Field label="Strength">
+              <div className="flex flex-wrap gap-2">
+                {strengths.length === 0 ? (
+                  <p className="text-sm text-neutral-400">
+                    No strengths yet — add them under Strength.
+                  </p>
+                ) : (
+                  strengths.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          strength: toggleId(form.strength, item.id),
+                        })
+                      }
+                      className={`${adminBtn} ${
+                        form.strength.includes(item.id)
+                          ? "bg-black text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ))
+                )}
               </div>
             </Field>
 

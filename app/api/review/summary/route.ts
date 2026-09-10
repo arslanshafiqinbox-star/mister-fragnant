@@ -34,14 +34,22 @@ export async function GET(request: NextRequest) {
 
     const occasionCol = await getNamedEntityCollection("occasion");
     const scentCol = await getNamedEntityCollection("scent_type");
+    const genderCol = await getNamedEntityCollection("gender");
+    const strengthCol = await getNamedEntityCollection("strength");
     const reviewsCol = await getReviewsCollection();
 
-    const [occasions, scentTypes, aggregate] = await Promise.all([
+    const [occasions, scentTypes, genders, strengths, aggregate] = await Promise.all([
       fragrance.occasion?.length
         ? occasionCol.find({ _id: { $in: fragrance.occasion } }).toArray()
         : Promise.resolve([]),
       fragrance.scent_type?.length
         ? scentCol.find({ _id: { $in: fragrance.scent_type } }).toArray()
+        : Promise.resolve([]),
+      fragrance.gender?.length
+        ? genderCol.find({ _id: { $in: fragrance.gender } }).toArray()
+        : Promise.resolve([]),
+      fragrance.strength?.length
+        ? strengthCol.find({ _id: { $in: fragrance.strength } }).toArray()
         : Promise.resolve([]),
       reviewsCol
         .aggregate<{
@@ -117,6 +125,17 @@ export async function GET(request: NextRequest) {
           name: s.name,
           description: s.description,
         })),
+        gender: genders.map((g) => ({
+          id: g._id!.toHexString(),
+          name: g.name,
+          description: g.description,
+        })),
+        strength: strengths.map((s) => ({
+          id: s._id!.toHexString(),
+          name: s.name,
+          description: s.description,
+        })),
+        approx_price: fragrance.approx_price?.trim() || null,
         associate_links: fragrance.associate_links ?? [],
       },
       total_votes: totalVotes,

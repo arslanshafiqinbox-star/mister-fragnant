@@ -14,6 +14,8 @@ const navLinks = [
   { href: "/admin/main/fragnances", label: "Fragnances" },
   { href: "/admin/main/reviews", label: "Reviews" },
   { href: "/admin/main/scents-and-occassions", label: "Scents & Occassions" },
+  { href: "/admin/main/gender", label: "Gender" },
+  { href: "/admin/main/strength", label: "Strength" },
   { href: "/admin/main/sponsored-perfumes", label: "Sponsored" },
   { href: "/admin/main/films", label: "Films" },
   { href: "/admin/main/alternatives", label: "Alternatives" },

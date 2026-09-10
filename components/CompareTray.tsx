@@ -8,6 +8,9 @@ export type CompareItem = {
   brand: string;
   occasion: { id: string; name: string }[];
   scent_type: { id: string; name: string }[];
+  gender: { id: string; name: string }[];
+  strength: { id: string; name: string }[];
+  approx_price?: string | null;
   total_votes: number;
   average_rating: number | null;
 };
@@ -164,6 +167,32 @@ function CompareModal({
                 label="Occasion"
                 left={<TagList labels={a.occasion.map((o) => o.name)} />}
                 right={<TagList labels={b.occasion.map((o) => o.name)} />}
+              />
+
+              <CompareRow
+                label="Gender"
+                left={<TagList labels={(a.gender ?? []).map((g) => g.name)} />}
+                right={<TagList labels={(b.gender ?? []).map((g) => g.name)} />}
+              />
+
+              <CompareRow
+                label="Strength"
+                left={<TagList labels={(a.strength ?? []).map((s) => s.name)} />}
+                right={<TagList labels={(b.strength ?? []).map((s) => s.name)} />}
+              />
+
+              <CompareRow
+                label="Approx. price"
+                left={
+                  <p className="text-[0.9rem] text-black">
+                    {a.approx_price?.trim() || "—"}
+                  </p>
+                }
+                right={
+                  <p className="text-[0.9rem] text-black">
+                    {b.approx_price?.trim() || "—"}
+                  </p>
+                }
               />
 
               <CompareRow

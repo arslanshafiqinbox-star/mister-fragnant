@@ -38,7 +38,15 @@ type AlternativeRow = {
   name: string;
   scent_type: string[];
   occasion: string[];
+  gender: string[];
+  strength: string[];
   comparison: AlternativeComparison;
+};
+
+type NamedListResponse = {
+  ok: boolean;
+  rows?: NamedEntity[];
+  message?: string;
 };
 
 type ListResponse = {
@@ -202,9 +210,13 @@ function AlternativeModal({
 export default function FragranceAlternatives() {
   const [rows, setRows] = useState<AlternativeRow[]>([]);
   const [scentTypes, setScentTypes] = useState<NamedEntity[]>([]);
+  const [genders, setGenders] = useState<NamedEntity[]>([]);
+  const [strengths, setStrengths] = useState<NamedEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState(ALL);
+  const [scentFilter, setScentFilter] = useState(ALL);
+  const [genderFilter, setGenderFilter] = useState(ALL);
+  const [strengthFilter, setStrengthFilter] = useState(ALL);
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -214,19 +226,25 @@ export default function FragranceAlternatives() {
       setLoading(true);
       setError(null);
       try {
-        const [aRes, sRes] = await Promise.all([
+        const [aRes, sRes, gRes, stRes] = await Promise.all([
           fetch("/api/alternative"),
           fetch("/api/scent-type"),
+          fetch("/api/gender"),
+          fetch("/api/strength"),
         ]);
-        const [aJson, sJson] = (await Promise.all([
+        const [aJson, sJson, gJson, stJson] = (await Promise.all([
           aRes.json(),
           sRes.json(),
-        ])) as [ListResponse, ListResponse & { rows?: NamedEntity[] }];
+          gRes.json(),
+          stRes.json(),
+        ])) as [ListResponse, NamedListResponse, NamedListResponse, NamedListResponse];
 
         if (!aJson.ok) throw new Error(aJson.message || "Failed to load");
         if (!cancelled) {
           setRows(aJson.rows ?? []);
           setScentTypes(sJson.rows ?? []);
+          setGenders(gJson.rows ?? []);
+          setStrengths(stJson.rows ?? []);
         }
       } catch (e) {
         if (!cancelled) {
@@ -244,9 +262,22 @@ export default function FragranceAlternatives() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (filter === ALL) return rows;
-    return rows.filter((row) => (row.scent_type ?? []).includes(filter));
-  }, [rows, filter]);
+    return rows.filter((row) => {
+      if (scentFilter !== ALL && !(row.scent_type ?? []).includes(scentFilter)) {
+        return false;
+      }
+      if (genderFilter !== ALL && !(row.gender ?? []).includes(genderFilter)) {
+        return false;
+      }
+      if (
+        strengthFilter !== ALL &&
+        !(row.strength ?? []).includes(strengthFilter)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [rows, scentFilter, genderFilter, strengthFilter]);
 
   const openRow = useMemo(
     () => rows.find((r) => r.id === openId) ?? null,
@@ -272,35 +303,105 @@ export default function FragranceAlternatives() {
           comparisons.
         </p>
 
-        <div className="mt-8">
-          <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
-            Filter by type
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setFilter(ALL)}
-              className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                filter === ALL ? "bg-black text-white" : "bg-white text-black"
-              }`}
-            >
-              All
-            </button>
-            {scentTypes.map((s) => {
-              const active = filter === s.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setFilter(s.id)}
-                  className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                    active ? "bg-black text-white" : "bg-white text-black"
-                  }`}
-                >
-                  {s.name}
-                </button>
-              );
-            })}
+        <div className="mt-8 flex flex-col gap-4">
+          <div>
+            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
+              Filter by type
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setScentFilter(ALL)}
+                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                  scentFilter === ALL ? "bg-black text-white" : "bg-white text-black"
+                }`}
+              >
+                All
+              </button>
+              {scentTypes.map((s) => {
+                const active = scentFilter === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setScentFilter(s.id)}
+                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                      active ? "bg-black text-white" : "bg-white text-black"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
+              Filter by gender
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setGenderFilter(ALL)}
+                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                  genderFilter === ALL
+                    ? "bg-black text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                All
+              </button>
+              {genders.map((g) => {
+                const active = genderFilter === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setGenderFilter(g.id)}
+                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                      active ? "bg-black text-white" : "bg-white text-black"
+                    }`}
+                  >
+                    {g.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
+              Filter by strength
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setStrengthFilter(ALL)}
+                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                  strengthFilter === ALL
+                    ? "bg-black text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                All
+              </button>
+              {strengths.map((s) => {
+                const active = strengthFilter === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setStrengthFilter(s.id)}
+                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
+                      active ? "bg-black text-white" : "bg-white text-black"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -318,7 +419,7 @@ export default function FragranceAlternatives() {
 
         {!loading && !error && filtered.length === 0 ? (
           <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
-            No alternatives yet.
+            No alternatives match these filters.
           </p>
         ) : null}
 

@@ -20,11 +20,16 @@ export async function GET() {
     const reviewsCol = await getReviewsCollection();
     const occasionCol = await getNamedEntityCollection("occasion");
     const scentCol = await getNamedEntityCollection("scent_type");
+    const genderCol = await getNamedEntityCollection("gender");
+    const strengthCol = await getNamedEntityCollection("strength");
 
-    const [fragrances, occasions, scentTypes, ratingStats] = await Promise.all([
-      fragrancesCol.find({}).toArray(),
-      occasionCol.find({}).toArray(),
-      scentCol.find({}).toArray(),
+    const [fragrances, occasions, scentTypes, genders, strengths, ratingStats] =
+      await Promise.all([
+        fragrancesCol.find({}).toArray(),
+        occasionCol.find({}).toArray(),
+        scentCol.find({}).toArray(),
+        genderCol.find({}).toArray(),
+        strengthCol.find({}).toArray(),
       reviewsCol
         .aggregate<{
           _id: import("mongodb").ObjectId;
@@ -80,6 +85,28 @@ export async function GET() {
       ])
     );
 
+    const genderMap = new Map(
+      genders.map((g) => [
+        g._id!.toHexString(),
+        {
+          id: g._id!.toHexString(),
+          name: g.name,
+          description: g.description,
+        },
+      ])
+    );
+
+    const strengthMap = new Map(
+      strengths.map((s) => [
+        s._id!.toHexString(),
+        {
+          id: s._id!.toHexString(),
+          name: s.name,
+          description: s.description,
+        },
+      ])
+    );
+
     const rows = ratingStats
       .map((stats) => {
         const id = stats._id.toHexString();
@@ -97,6 +124,13 @@ export async function GET() {
             scent_type: (f.scent_type ?? [])
               .map((sid) => scentMap.get(sid.toHexString()))
               .filter(Boolean),
+            gender: (f.gender ?? [])
+              .map((gid) => genderMap.get(gid.toHexString()))
+              .filter(Boolean),
+            strength: (f.strength ?? [])
+              .map((sid) => strengthMap.get(sid.toHexString()))
+              .filter(Boolean),
+            approx_price: f.approx_price?.trim() || null,
             associate_links: f.associate_links ?? [],
           },
           total_votes: stats.total_votes,

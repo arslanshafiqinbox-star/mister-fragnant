@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import ReviewsPanel from "@/components/ReviewsPanel";
-import WhereToBuyPanel from "@/components/WhereToBuyPanel";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import CompareTray, {
   toggleCompareSelection,
   type CompareItem,
 } from "@/components/CompareTray";
+import FragranceDetailPopup from "@/components/FragranceDetailPopup";
 
 type NamedEntity = {
   id: string;
@@ -25,6 +24,9 @@ type FragranceRow = {
   brand: string;
   occasion: NamedEntity[];
   scent_type: NamedEntity[];
+  gender: NamedEntity[];
+  strength: NamedEntity[];
+  approx_price?: string | null;
   associate_links: AssociateLink[];
   total_votes: number;
   average_rating: number | null;
@@ -37,6 +39,15 @@ type ListResponse<T> = {
 };
 
 const ALL = "all";
+const INITIAL_VISIBLE = 6;
+
+type SortBy = "rating" | "price";
+
+function parseApproxAmount(value?: string | null): number | null {
+  if (!value) return null;
+  const n = Number(value.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
 
 function RatingDisplay({ rating }: { rating: number | null }) {
   return (
@@ -73,28 +84,17 @@ function FilterChip({
   );
 }
 
-function toggleId(set: Set<string>, id: string) {
-  const next = new Set(set);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  return next;
-}
-
 function FragranceCard({
   fragrance,
-  reviewsOpen,
-  buyOpen,
   compareSelected,
-  onToggleReviews,
-  onToggleBuy,
+  popupOpen,
+  onOpenDetails,
   onToggleCompare,
 }: {
   fragrance: FragranceRow;
-  reviewsOpen: boolean;
-  buyOpen: boolean;
   compareSelected: boolean;
-  onToggleReviews: () => void;
-  onToggleBuy: () => void;
+  popupOpen: boolean;
+  onOpenDetails: () => void;
   onToggleCompare: () => void;
 }) {
   const scentLabel = fragrance.scent_type[0]?.name ?? "Uncategorized";
@@ -102,7 +102,20 @@ function FragranceCard({
     "inline-flex items-center gap-1 border border-black px-2 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.06em] shadow-[2px_2px_0_#000] transition-[transform,box-shadow] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000]";
 
   return (
-    <article className="flex h-full flex-col border border-black bg-white p-3.5 shadow-[3px_3px_0_#000] sm:p-4">
+    <article
+      className="flex h-full cursor-pointer flex-col border border-black bg-white p-3.5 shadow-[3px_3px_0_#000] transition-colors hover:bg-[#f7f7f5] sm:p-4"
+      onClick={onOpenDetails}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDetails();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
+      aria-expanded={popupOpen}
+    >
       <div className="flex items-baseline justify-between gap-3">
         <span className="font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
           {scentLabel}
@@ -118,33 +131,24 @@ function FragranceCard({
       </div>
 
       <div className="mt-8 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={onToggleReviews}
-          aria-expanded={reviewsOpen}
-          className={`${btnBase} bg-black text-white`}
-        >
-          {reviewsOpen ? "Hide reviews" : "See reviews"} ({fragrance.total_votes})
+        <span className={`${btnBase} bg-black text-white`}>
+          See reviews ({fragrance.total_votes})
           <span aria-hidden className="text-[0.5rem]">
-            {reviewsOpen ? "▴" : "▾"}
+            ↗
           </span>
-        </button>
+        </span>
 
-        <button
-          type="button"
-          onClick={onToggleBuy}
-          aria-expanded={buyOpen}
-          className={`${btnBase} ${
-            buyOpen ? "bg-black text-white" : "bg-white text-black"
-          }`}
-        >
+        <span className={`${btnBase} bg-white text-black`}>
           Where to buy
-          <span aria-hidden>{buyOpen ? "▴" : "↗"}</span>
-        </button>
+          <span aria-hidden>↗</span>
+        </span>
 
         <button
           type="button"
-          onClick={onToggleCompare}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare();
+          }}
           aria-pressed={compareSelected}
           className={`${btnBase} ${
             compareSelected
@@ -162,16 +166,19 @@ function FragranceCard({
 export default function FragranceCabinet() {
   const [scentTypes, setScentTypes] = useState<NamedEntity[]>([]);
   const [occasions, setOccasions] = useState<NamedEntity[]>([]);
+  const [genders, setGenders] = useState<NamedEntity[]>([]);
+  const [strengths, setStrengths] = useState<NamedEntity[]>([]);
   const [fragrances, setFragrances] = useState<FragranceRow[]>([]);
   const [search, setSearch] = useState("");
   const [scentFilter, setScentFilter] = useState(ALL);
   const [occasionFilter, setOccasionFilter] = useState(ALL);
+  const [genderFilter, setGenderFilter] = useState(ALL);
+  const [strengthFilter, setStrengthFilter] = useState(ALL);
+  const [sortBy, setSortBy] = useState<SortBy>("rating");
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openReviewsIds, setOpenReviewsIds] = useState<Set<string>>(
-    () => new Set()
-  );
-  const [openBuyIds, setOpenBuyIds] = useState<Set<string>>(() => new Set());
+  const [openId, setOpenId] = useState<string | null>(null);
   const [compareItems, setCompareItems] = useState<CompareItem[]>([]);
 
   function toCompareItem(fragrance: FragranceRow): CompareItem {
@@ -181,68 +188,80 @@ export default function FragranceCabinet() {
       brand: fragrance.brand,
       occasion: fragrance.occasion,
       scent_type: fragrance.scent_type,
+      gender: fragrance.gender ?? [],
+      strength: fragrance.strength ?? [],
+      approx_price: fragrance.approx_price ?? null,
       total_votes: fragrance.total_votes,
       average_rating: fragrance.average_rating,
     };
   }
 
-  useEffect(() => {
-    let cancelled = false;
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const [scentRes, occasionRes, catalogRes] = await Promise.all([
+    try {
+      const [scentRes, occasionRes, genderRes, strengthRes, catalogRes] =
+        await Promise.all([
           fetch("/api/scent-type"),
           fetch("/api/occasion"),
+          fetch("/api/gender"),
+          fetch("/api/strength"),
           fetch("/api/fragrance/catalog"),
         ]);
 
-        const [scentJson, occasionJson, catalogJson] = (await Promise.all([
+      const [scentJson, occasionJson, genderJson, strengthJson, catalogJson] =
+        (await Promise.all([
           scentRes.json(),
           occasionRes.json(),
+          genderRes.json(),
+          strengthRes.json(),
           catalogRes.json(),
         ])) as [
+          ListResponse<NamedEntity>,
+          ListResponse<NamedEntity>,
           ListResponse<NamedEntity>,
           ListResponse<NamedEntity>,
           ListResponse<FragranceRow>,
         ];
 
-        if (!scentJson.ok || !occasionJson.ok || !catalogJson.ok) {
-          throw new Error(
-            scentJson.message ||
-              occasionJson.message ||
-              catalogJson.message ||
-              "Failed to load cabinet data"
-          );
-        }
-
-        if (!cancelled) {
-          setScentTypes(scentJson.rows ?? []);
-          setOccasions(occasionJson.rows ?? []);
-          setFragrances(catalogJson.rows ?? []);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Failed to load");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (
+        !scentJson.ok ||
+        !occasionJson.ok ||
+        !genderJson.ok ||
+        !strengthJson.ok ||
+        !catalogJson.ok
+      ) {
+        throw new Error(
+          scentJson.message ||
+            occasionJson.message ||
+            genderJson.message ||
+            strengthJson.message ||
+            catalogJson.message ||
+            "Failed to load cabinet data"
+        );
       }
-    }
 
-    void load();
-    return () => {
-      cancelled = true;
-    };
+      setScentTypes(scentJson.rows ?? []);
+      setOccasions(occasionJson.rows ?? []);
+      setGenders(genderJson.rows ?? []);
+      setStrengths(strengthJson.rows ?? []);
+      setFragrances(catalogJson.rows ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    return fragrances.filter((f) => {
+    const next = fragrances.filter((f) => {
       if (q) {
         const haystack = `${f.name} ${f.brand}`.toLowerCase();
         if (!haystack.includes(q)) return false;
@@ -258,9 +277,53 @@ export default function FragranceCabinet() {
         if (!match) return false;
       }
 
+      if (genderFilter !== ALL) {
+        const match = (f.gender ?? []).some((g) => g.id === genderFilter);
+        if (!match) return false;
+      }
+
+      if (strengthFilter !== ALL) {
+        const match = (f.strength ?? []).some((s) => s.id === strengthFilter);
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [fragrances, search, scentFilter, occasionFilter]);
+
+    return next.slice().sort((a, b) => {
+      if (sortBy === "price") {
+        const pa = parseApproxAmount(a.approx_price);
+        const pb = parseApproxAmount(b.approx_price);
+        if (pa == null && pb == null) {
+          // fall through to rating
+        } else if (pa == null) return 1;
+        else if (pb == null) return -1;
+        else if (pa !== pb) return pa - pb;
+      }
+
+      const ra = a.average_rating ?? -1;
+      const rb = b.average_rating ?? -1;
+      if (rb !== ra) return rb - ra;
+      return b.total_votes - a.total_votes;
+    });
+  }, [
+    fragrances,
+    search,
+    scentFilter,
+    occasionFilter,
+    genderFilter,
+    strengthFilter,
+    sortBy,
+  ]);
+
+  useEffect(() => {
+    setShowAll(false);
+  }, [search, scentFilter, occasionFilter, genderFilter, strengthFilter, sortBy]);
+
+  const visible = showAll
+    ? filtered
+    : filtered.slice(0, INITIAL_VISIBLE);
+  const canLoadMore = !showAll && filtered.length > INITIAL_VISIBLE;
 
   return (
     <section id="cabinet" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
@@ -270,8 +333,8 @@ export default function FragranceCabinet() {
             Mister Fragrant&apos;s Cabinet
           </h2>
           <p className="max-w-sm text-[0.8rem] leading-relaxed text-neutral-600 sm:pt-2 sm:text-right sm:text-[0.85rem]">
-            Choose a scent type and/or an occasion to narrow things down, check
-            out fragrance reviews, or find out where to buy it.
+            Choose a scent type, occasion, gender, or strength to narrow things
+            down, check out fragrance reviews, or find out where to buy it.
           </p>
         </div>
 
@@ -332,6 +395,66 @@ export default function FragranceCabinet() {
                 ))}
               </div>
             </div>
+
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
+                Choose a gender
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <FilterChip
+                  label="All"
+                  active={genderFilter === ALL}
+                  onClick={() => setGenderFilter(ALL)}
+                />
+                {genders.map((g) => (
+                  <FilterChip
+                    key={g.id}
+                    label={g.name}
+                    active={genderFilter === g.id}
+                    onClick={() => setGenderFilter(g.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
+                Choose a strength
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <FilterChip
+                  label="All"
+                  active={strengthFilter === ALL}
+                  onClick={() => setStrengthFilter(ALL)}
+                />
+                {strengths.map((s) => (
+                  <FilterChip
+                    key={s.id}
+                    label={s.name}
+                    active={strengthFilter === s.id}
+                    onClick={() => setStrengthFilter(s.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
+                Sort by
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <FilterChip
+                  label="Rating"
+                  active={sortBy === "rating"}
+                  onClick={() => setSortBy("rating")}
+                />
+                <FilterChip
+                  label="Price"
+                  active={sortBy === "price"}
+                  onClick={() => setSortBy("price")}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -347,60 +470,34 @@ export default function FragranceCabinet() {
           </p>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((fragrance) => {
-              const reviewsOpen = openReviewsIds.has(fragrance.id);
-              const buyOpen = openBuyIds.has(fragrance.id);
-              const expanded = reviewsOpen || buyOpen;
-
-              const cardProps = {
-                fragrance,
-                reviewsOpen,
-                buyOpen,
-                compareSelected: compareItems.some((c) => c.id === fragrance.id),
-                onToggleReviews: () =>
-                  setOpenReviewsIds((s) => toggleId(s, fragrance.id)),
-                onToggleBuy: () =>
-                  setOpenBuyIds((s) => toggleId(s, fragrance.id)),
-                onToggleCompare: () =>
+            {visible.map((fragrance) => (
+              <FragranceCard
+                key={fragrance.id}
+                fragrance={fragrance}
+                popupOpen={openId === fragrance.id}
+                compareSelected={compareItems.some((c) => c.id === fragrance.id)}
+                onOpenDetails={() => setOpenId(fragrance.id)}
+                onToggleCompare={() =>
                   setCompareItems((list) =>
                     toggleCompareSelection(list, toCompareItem(fragrance))
-                  ),
-              };
-
-              if (expanded) {
-                return (
-                  <div
-                    key={fragrance.id}
-                    className="col-span-full flex flex-col gap-3"
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      <FragranceCard {...cardProps} />
-                    </div>
-                    {reviewsOpen ? (
-                      <ReviewsPanel
-                        fragranceId={fragrance.id}
-                        fragranceName={fragrance.name}
-                        onClose={() =>
-                          setOpenReviewsIds((s) => toggleId(s, fragrance.id))
-                        }
-                      />
-                    ) : null}
-                    {buyOpen ? (
-                      <WhereToBuyPanel
-                        fragranceId={fragrance.id}
-                        onClose={() =>
-                          setOpenBuyIds((s) => toggleId(s, fragrance.id))
-                        }
-                      />
-                    ) : null}
-                  </div>
-                );
-              }
-
-              return <FragranceCard key={fragrance.id} {...cardProps} />;
-            })}
+                  )
+                }
+              />
+            ))}
           </div>
         )}
+
+        {!loading && !error && canLoadMore ? (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="border border-black bg-white px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black shadow-[3px_3px_0_#000] transition-[transform,box-shadow] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000]"
+            >
+              Load more
+            </button>
+          </div>
+        ) : null}
 
         {!loading && !error && filtered.length === 0 ? (
           <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-500">
@@ -416,6 +513,19 @@ export default function FragranceCabinet() {
         }
         onClear={() => setCompareItems([])}
       />
+
+      {openId ? (
+        <FragranceDetailPopup
+          fragranceId={openId}
+          onClose={() => setOpenId(null)}
+          onReviewPosted={async () => {
+            const catalogRes = await fetch("/api/fragrance/catalog");
+            const catalogJson =
+              (await catalogRes.json()) as ListResponse<FragranceRow>;
+            if (catalogJson.ok) setFragrances(catalogJson.rows ?? []);
+          }}
+        />
+      ) : null}
     </section>
   );
 }

@@ -5,6 +5,7 @@ import {
   getNamedEntityCollection,
   type AssociateLink,
   type FragranceDoc,
+  type NamedEntityCollectionName,
 } from "@/lib/mongodb";
 
 type FragranceInput = {
@@ -13,6 +14,9 @@ type FragranceInput = {
   brand?: string;
   occasion?: string[];
   scent_type?: string[];
+  gender?: string[];
+  strength?: string[];
+  approx_price?: string | null;
   associate_links?: AssociateLink[];
 };
 
@@ -25,12 +29,29 @@ function serialize(doc: FragranceDoc & { _id: ObjectId }) {
     id: doc._id.toHexString(),
     name: doc.name,
     brand: doc.brand,
-    occasion: doc.occasion.map((id) => id.toHexString()),
-    scent_type: doc.scent_type.map((id) => id.toHexString()),
+    occasion: (doc.occasion ?? []).map((id) => id.toHexString()),
+    scent_type: (doc.scent_type ?? []).map((id) => id.toHexString()),
+    gender: (doc.gender ?? []).map((id) => id.toHexString()),
+    strength: (doc.strength ?? []).map((id) => id.toHexString()),
+    approx_price: doc.approx_price?.trim() || null,
     associate_links: doc.associate_links ?? [],
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
   };
+}
+
+function parseApproxPrice(
+  value: unknown
+): { price?: string | null; error?: string } {
+  if (value === undefined) return {};
+  if (value === null) return { price: null };
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return { price: String(value) };
+  }
+  if (typeof value !== "string") {
+    return { error: "approx_price must be a string" };
+  }
+  return { price: value.trim() || null };
 }
 
 function parseIdList(
@@ -75,7 +96,7 @@ function parseAssociateLinks(
 }
 
 async function assertIdsExist(
-  collectionName: "scent_type" | "occasion",
+  collectionName: NamedEntityCollectionName,
   ids: ObjectId[]
 ): Promise<string | null> {
   if (ids.length === 0) return null;
@@ -116,17 +137,30 @@ export async function POST(request: NextRequest) {
     if (occasionParsed.error) return jsonError(occasionParsed.error, 400);
     const scentParsed = parseIdList(body.scent_type ?? [], "scent_type");
     if (scentParsed.error) return jsonError(scentParsed.error, 400);
+    const genderParsed = parseIdList(body.gender ?? [], "gender");
+    if (genderParsed.error) return jsonError(genderParsed.error, 400);
+    const strengthParsed = parseIdList(body.strength ?? [], "strength");
+    if (strengthParsed.error) return jsonError(strengthParsed.error, 400);
+    const priceParsed = parseApproxPrice(body.approx_price ?? null);
+    if (priceParsed.error) return jsonError(priceParsed.error, 400);
     const linksParsed = parseAssociateLinks(body.associate_links ?? []);
     if (linksParsed.error) return jsonError(linksParsed.error, 400);
 
     const occasionIds = occasionParsed.ids ?? [];
     const scentIds = scentParsed.ids ?? [];
+    const genderIds = genderParsed.ids ?? [];
+    const strengthIds = strengthParsed.ids ?? [];
+    const approxPrice = priceParsed.price ?? null;
     const associateLinks = linksParsed.links ?? [];
 
     const occasionErr = await assertIdsExist("occasion", occasionIds);
     if (occasionErr) return jsonError(occasionErr, 400);
     const scentErr = await assertIdsExist("scent_type", scentIds);
     if (scentErr) return jsonError(scentErr, 400);
+    const genderErr = await assertIdsExist("gender", genderIds);
+    if (genderErr) return jsonError(genderErr, 400);
+    const strengthErr = await assertIdsExist("strength", strengthIds);
+    if (strengthErr) return jsonError(strengthErr, 400);
 
     const now = new Date();
     const doc: FragranceDoc = {
@@ -134,6 +168,9 @@ export async function POST(request: NextRequest) {
       brand,
       occasion: occasionIds,
       scent_type: scentIds,
+      gender: genderIds,
+      strength: strengthIds,
+      approx_price: approxPrice,
       associate_links: associateLinks,
       created_at: now,
       updated_at: now,
@@ -177,6 +214,12 @@ export async function PUT(request: NextRequest) {
       updates.brand = brand;
     }
 
+    if (body.approx_price !== undefined) {
+      const parsed = parseApproxPrice(body.approx_price);
+      if (parsed.error) return jsonError(parsed.error, 400);
+      updates.approx_price = parsed.price ?? null;
+    }
+
     if (body.occasion !== undefined) {
       const parsed = parseIdList(body.occasion, "occasion");
       if (parsed.error) return jsonError(parsed.error, 400);
@@ -193,6 +236,24 @@ export async function PUT(request: NextRequest) {
       const err = await assertIdsExist("scent_type", ids);
       if (err) return jsonError(err, 400);
       updates.scent_type = ids;
+    }
+
+    if (body.gender !== undefined) {
+      const parsed = parseIdList(body.gender, "gender");
+      if (parsed.error) return jsonError(parsed.error, 400);
+      const ids = parsed.ids ?? [];
+      const err = await assertIdsExist("gender", ids);
+      if (err) return jsonError(err, 400);
+      updates.gender = ids;
+    }
+
+    if (body.strength !== undefined) {
+      const parsed = parseIdList(body.strength, "strength");
+      if (parsed.error) return jsonError(parsed.error, 400);
+      const ids = parsed.ids ?? [];
+      const err = await assertIdsExist("strength", ids);
+      if (err) return jsonError(err, 400);
+      updates.strength = ids;
     }
 
     if (body.associate_links !== undefined) {

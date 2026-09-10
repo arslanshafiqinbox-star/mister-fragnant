@@ -19,12 +19,12 @@ export default function Home() {
       <FragranceStrip />
       <SponsoredStrip />
       <FragranceCabinet />
-      <FragranceFavourites />
+      {/* <FragranceFavourites /> */}
       <FragranceAlternatives />
     
       <FragranceNotes />
       <FragranceFilms />
-      <AddFragrance />
+      {/* <AddFragrance /> */}
       <NewsletterSignup />
       <BottomBar />
     </main>

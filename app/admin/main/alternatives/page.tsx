@@ -51,6 +51,8 @@ type AlternativeRow = {
   name: string;
   scent_type: string[];
   occasion: string[];
+  gender: string[];
+  strength: string[];
   comparison: Partial<AlternativeComparison> & Record<string, unknown>;
   created_at: string;
 };
@@ -61,6 +63,8 @@ type FormState = {
   name: string;
   scent_type: string[];
   occasion: string[];
+  gender: string[];
+  strength: string[];
   closeness: string;
   fragrance1: FragranceSideForm;
   fragrance2: FragranceSideForm;
@@ -84,6 +88,8 @@ const empty: FormState = {
   name: "",
   scent_type: [],
   occasion: [],
+  gender: [],
+  strength: [],
   closeness: "",
   fragrance1: emptyFragrance(),
   fragrance2: emptyFragrance(),
@@ -161,6 +167,8 @@ function formFromRow(row: AlternativeRow): FormState {
     name: row.name ?? "",
     scent_type: row.scent_type ?? [],
     occasion: row.occasion ?? [],
+    gender: row.gender ?? [],
+    strength: row.strength ?? [],
     closeness: closenessInputValue(c.closeness),
     fragrance1: sideFromData(pair.fragrance1),
     fragrance2: sideFromData(pair.fragrance2),
@@ -309,6 +317,8 @@ export default function AdminAlternativesPage() {
   const [rows, setRows] = useState<AlternativeRow[]>([]);
   const [scentTypes, setScentTypes] = useState<NamedEntity[]>([]);
   const [occasions, setOccasions] = useState<NamedEntity[]>([]);
+  const [genders, setGenders] = useState<NamedEntity[]>([]);
+  const [strengths, setStrengths] = useState<NamedEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
@@ -330,20 +340,26 @@ export default function AdminAlternativesPage() {
     setLoading(true);
     setError(null);
     try {
-      const [aRes, sRes, oRes] = await Promise.all([
+      const [aRes, sRes, oRes, gRes, stRes] = await Promise.all([
         fetch("/api/alternative"),
         fetch("/api/scent-type"),
         fetch("/api/occasion"),
+        fetch("/api/gender"),
+        fetch("/api/strength"),
       ]);
-      const [aJson, sJson, oJson] = await Promise.all([
+      const [aJson, sJson, oJson, gJson, stJson] = await Promise.all([
         aRes.json(),
         sRes.json(),
         oRes.json(),
+        gRes.json(),
+        stRes.json(),
       ]);
       if (!aJson.ok) throw new Error(aJson.message || "Failed to load");
       setRows(aJson.rows ?? []);
       setScentTypes(sJson.rows ?? []);
       setOccasions(oJson.rows ?? []);
+      setGenders(gJson.rows ?? []);
+      setStrengths(stJson.rows ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -401,6 +417,8 @@ export default function AdminAlternativesPage() {
         name: form.name.trim(),
         scent_type: form.scent_type,
         occasion: form.occasion,
+        gender: form.gender,
+        strength: form.strength,
         comparison: {
           closeness: `${closenessNum}/10`,
           comparison: {
@@ -459,7 +477,7 @@ export default function AdminAlternativesPage() {
     <div>
       <AdminPageHeader
         title="Alternatives"
-        subtitle="Name, scent types, occasions, and structured fragrance comparison."
+        subtitle="Name, scent types, occasions, gender, strength, and structured fragrance comparison."
         action={
           <button
             type="button"
@@ -480,7 +498,7 @@ export default function AdminAlternativesPage() {
 
       {!loading && !error ? (
         <div className="overflow-x-auto border border-black bg-white shadow-[3px_3px_0_#000]">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="border-b border-black bg-neutral-50 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em]">
               <tr>
                 <th className="px-4 py-3">Name</th>
@@ -488,13 +506,15 @@ export default function AdminAlternativesPage() {
                 <th className="px-4 py-3">Pair</th>
                 <th className="px-4 py-3">Scent types</th>
                 <th className="px-4 py-3">Occasions</th>
+                <th className="px-4 py-3">Gender</th>
+                <th className="px-4 py-3">Strength</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-neutral-400">
+                  <td colSpan={8} className="px-4 py-8 text-neutral-400">
                     No alternatives yet.
                   </td>
                 </tr>
@@ -534,6 +554,12 @@ export default function AdminAlternativesPage() {
                       </td>
                       <td className="px-4 py-3 text-neutral-600">
                         {nameById(row.occasion ?? [], occasions)}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-600">
+                        {nameById(row.gender ?? [], genders)}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-600">
+                        {nameById(row.strength ?? [], strengths)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
@@ -626,6 +652,66 @@ export default function AdminAlternativesPage() {
                       }
                       className={`${adminBtn} ${
                         form.occasion.includes(item.id)
+                          ? "bg-black text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </Field>
+
+            <Field label="Gender">
+              <div className="flex flex-wrap gap-2">
+                {genders.length === 0 ? (
+                  <p className="text-xs text-neutral-400">
+                    No genders yet — add them under Gender.
+                  </p>
+                ) : (
+                  genders.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          gender: toggleId(form.gender, item.id),
+                        })
+                      }
+                      className={`${adminBtn} ${
+                        form.gender.includes(item.id)
+                          ? "bg-black text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </Field>
+
+            <Field label="Strength">
+              <div className="flex flex-wrap gap-2">
+                {strengths.length === 0 ? (
+                  <p className="text-xs text-neutral-400">
+                    No strengths yet — add them under Strength.
+                  </p>
+                ) : (
+                  strengths.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          strength: toggleId(form.strength, item.id),
+                        })
+                      }
+                      className={`${adminBtn} ${
+                        form.strength.includes(item.id)
                           ? "bg-black text-white"
                           : "bg-white"
                       }`}

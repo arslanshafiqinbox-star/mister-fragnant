@@ -6,6 +6,7 @@ import {
   type AlternativeComparison,
   type AlternativeDoc,
   type AlternativeFragranceSide,
+  type NamedEntityCollectionName,
 } from "@/lib/mongodb";
 
 type AlternativeInput = {
@@ -13,6 +14,8 @@ type AlternativeInput = {
   name?: string;
   scent_type?: string[];
   occasion?: string[];
+  gender?: string[];
+  strength?: string[];
   comparison?: unknown;
 };
 
@@ -51,6 +54,8 @@ function serialize(doc: AlternativeDoc & { _id: ObjectId }) {
     name: doc.name,
     scent_type: (doc.scent_type ?? []).map((id) => id.toHexString()),
     occasion: (doc.occasion ?? []).map((id) => id.toHexString()),
+    gender: (doc.gender ?? []).map((id) => id.toHexString()),
+    strength: (doc.strength ?? []).map((id) => id.toHexString()),
     comparison: doc.comparison ?? emptyComparison(),
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
@@ -221,7 +226,7 @@ function parseIdList(
 }
 
 async function assertIdsExist(
-  collectionName: "scent_type" | "occasion",
+  collectionName: NamedEntityCollectionName,
   ids: ObjectId[]
 ): Promise<string | null> {
   if (ids.length === 0) return null;
@@ -267,20 +272,32 @@ export async function POST(request: NextRequest) {
     if (scentParsed.error) return jsonError(scentParsed.error, 400);
     const occasionParsed = parseIdList(body.occasion ?? [], "occasion");
     if (occasionParsed.error) return jsonError(occasionParsed.error, 400);
+    const genderParsed = parseIdList(body.gender ?? [], "gender");
+    if (genderParsed.error) return jsonError(genderParsed.error, 400);
+    const strengthParsed = parseIdList(body.strength ?? [], "strength");
+    if (strengthParsed.error) return jsonError(strengthParsed.error, 400);
 
     const scentIds = scentParsed.ids ?? [];
     const occasionIds = occasionParsed.ids ?? [];
+    const genderIds = genderParsed.ids ?? [];
+    const strengthIds = strengthParsed.ids ?? [];
 
     const scentErr = await assertIdsExist("scent_type", scentIds);
     if (scentErr) return jsonError(scentErr, 400);
     const occasionErr = await assertIdsExist("occasion", occasionIds);
     if (occasionErr) return jsonError(occasionErr, 400);
+    const genderErr = await assertIdsExist("gender", genderIds);
+    if (genderErr) return jsonError(genderErr, 400);
+    const strengthErr = await assertIdsExist("strength", strengthIds);
+    if (strengthErr) return jsonError(strengthErr, 400);
 
     const now = new Date();
     const doc: AlternativeDoc = {
       name,
       scent_type: scentIds,
       occasion: occasionIds,
+      gender: genderIds,
+      strength: strengthIds,
       comparison: comparisonParsed.comparison,
       created_at: now,
       updated_at: now,
@@ -344,6 +361,24 @@ export async function PUT(request: NextRequest) {
       const err = await assertIdsExist("occasion", ids);
       if (err) return jsonError(err, 400);
       updates.occasion = ids;
+    }
+
+    if (body.gender !== undefined) {
+      const parsed = parseIdList(body.gender, "gender");
+      if (parsed.error) return jsonError(parsed.error, 400);
+      const ids = parsed.ids ?? [];
+      const err = await assertIdsExist("gender", ids);
+      if (err) return jsonError(err, 400);
+      updates.gender = ids;
+    }
+
+    if (body.strength !== undefined) {
+      const parsed = parseIdList(body.strength, "strength");
+      if (parsed.error) return jsonError(parsed.error, 400);
+      const ids = parsed.ids ?? [];
+      const err = await assertIdsExist("strength", ids);
+      if (err) return jsonError(err, 400);
+      updates.strength = ids;
     }
 
     const col = await getAlternativesCollection();

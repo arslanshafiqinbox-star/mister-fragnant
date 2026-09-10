@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import {
   getNamedEntityCollection,
+  type NamedEntityCollectionName,
   type NamedEntityDoc,
 } from "@/lib/mongodb";
 
@@ -24,7 +25,7 @@ function serialize(doc: NamedEntityDoc & { _id: ObjectId }) {
 }
 
 export function createNamedEntityCrud(
-  collectionName: "scent_type" | "occasion"
+  collectionName: NamedEntityCollectionName
 ) {
   async function GET() {
     try {
