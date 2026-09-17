@@ -287,21 +287,9 @@ export default function FragranceAlternatives() {
   return (
     <section id="alternatives" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
-          <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
-            Mister Fragrant&apos;s Alternatives
-          </h2>
-          <p className="max-w-[18rem] text-[0.75rem] leading-relaxed text-neutral-500 sm:pt-2 sm:text-right sm:text-[0.8rem]">
-            The real thing, and the closest thing to it for a fraction of the
-            price. You decide which is worth it.
-          </p>
-        </div>
-
-        <p className="mt-5 max-w-3xl text-[0.75rem] italic leading-relaxed text-neutral-400 sm:text-[0.8rem]">
-          Not affiliated with or endorsed by any fragrance house. Closeness
-          scores are editorial opinions based on wearing both — not laboratory
-          comparisons.
-        </p>
+        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+          Mister Fragrant&apos;s Alternatives
+        </h2>
 
         <div className="mt-8 flex flex-col gap-4">
           <div>

@@ -9,6 +9,7 @@ import {
 type FilmInput = {
   id?: string;
   name?: string;
+  sponsored?: boolean;
   details?: unknown;
 };
 
@@ -20,6 +21,7 @@ function serialize(doc: FilmDoc & { _id: ObjectId }) {
   return {
     id: doc._id.toHexString(),
     name: doc.name,
+    sponsored: Boolean(doc.sponsored),
     details: doc.details,
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
@@ -36,7 +38,6 @@ function parseDetails(
 
   const raw = value as {
     brand?: unknown;
-    location?: unknown;
     date?: unknown;
     duration?: unknown;
     url?: unknown;
@@ -45,19 +46,6 @@ function parseDetails(
 
   const brand = typeof raw.brand === "string" ? raw.brand.trim() : "";
   if (!brand) return { error: "details.brand is required" };
-
-  if (
-    !raw.location ||
-    typeof raw.location !== "object" ||
-    Array.isArray(raw.location)
-  ) {
-    return { error: "details.location must be an object" };
-  }
-  const loc = raw.location as { city?: unknown; country?: unknown };
-  const city = typeof loc.city === "string" ? loc.city.trim() : "";
-  const country = typeof loc.country === "string" ? loc.country.trim() : "";
-  if (!city) return { error: "details.location.city is required" };
-  if (!country) return { error: "details.location.country is required" };
 
   const date = typeof raw.date === "string" ? raw.date.trim() : "";
   if (!date) return { error: "details.date is required" };
@@ -75,7 +63,6 @@ function parseDetails(
   return {
     details: {
       brand,
-      location: { city, country },
       date,
       duration,
       url,
@@ -115,6 +102,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const doc: FilmDoc = {
       name,
+      sponsored: body.sponsored === true,
       details: detailsParsed.details,
       created_at: now,
       updated_at: now,
@@ -151,6 +139,13 @@ export async function PUT(request: NextRequest) {
       const name = body.name.trim();
       if (!name) return jsonError("name cannot be empty", 400);
       updates.name = name;
+    }
+
+    if (body.sponsored !== undefined) {
+      if (typeof body.sponsored !== "boolean") {
+        return jsonError("sponsored must be a boolean", 400);
+      }
+      updates.sponsored = body.sponsored;
     }
 
     if (body.details !== undefined) {

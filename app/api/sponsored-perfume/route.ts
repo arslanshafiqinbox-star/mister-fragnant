@@ -5,6 +5,7 @@ import {
   getSponsoredPerfumesCollection,
   type SponsoredPerfumeDetails,
   type SponsoredPerfumeDoc,
+  type SponsoredPerfumeStatus,
 } from "@/lib/mongodb";
 
 type SponsoredPerfumeInput = {
@@ -13,6 +14,7 @@ type SponsoredPerfumeInput = {
   scent_type?: string[];
   occasion?: string[];
   details?: unknown;
+  status?: unknown;
 };
 
 function jsonError(message: string, status: number, details?: unknown) {
@@ -25,12 +27,13 @@ function serialize(doc: SponsoredPerfumeDoc & { _id: ObjectId }) {
     name: doc.name,
     scent_type: (doc.scent_type ?? []).map((id) => id.toHexString()),
     occasion: (doc.occasion ?? []).map((id) => id.toHexString()),
-    details: doc.details ?? {
-      brand: "",
-      description: "",
-      rating: 0,
-      retailers: [],
+    details: {
+      brand: doc.details?.brand ?? "",
+      description: doc.details?.description ?? "",
+      rating: doc.details?.rating ?? 0,
+      retailers: doc.details?.retailers ?? [],
     },
+    status: doc.status ?? null,
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
   };
@@ -92,6 +95,19 @@ function parseDetails(
       rating,
       retailers,
     },
+  };
+}
+
+function parseStatus(
+  value: unknown
+): { status?: SponsoredPerfumeStatus | null; error?: string } {
+  if (value === undefined) return {};
+  if (value === null || value === "") return { status: null };
+  if (value === "sponsored" || value === "featured" || value === "both") {
+    return { status: value };
+  }
+  return {
+    error: "status must be sponsored, featured, both, or null",
   };
 }
 
@@ -158,6 +174,8 @@ export async function POST(request: NextRequest) {
     if (scentParsed.error) return jsonError(scentParsed.error, 400);
     const occasionParsed = parseIdList(body.occasion ?? [], "occasion");
     if (occasionParsed.error) return jsonError(occasionParsed.error, 400);
+    const statusParsed = parseStatus(body.status === undefined ? null : body.status);
+    if (statusParsed.error) return jsonError(statusParsed.error, 400);
 
     const scentIds = scentParsed.ids ?? [];
     const occasionIds = occasionParsed.ids ?? [];
@@ -173,6 +191,7 @@ export async function POST(request: NextRequest) {
       scent_type: scentIds,
       occasion: occasionIds,
       details: detailsParsed.details,
+      status: statusParsed.status ?? null,
       created_at: now,
       updated_at: now,
     };
@@ -235,10 +254,16 @@ export async function PUT(request: NextRequest) {
       updates.occasion = ids;
     }
 
+    if (body.status !== undefined) {
+      const parsed = parseStatus(body.status);
+      if (parsed.error) return jsonError(parsed.error, 400);
+      updates.status = parsed.status ?? null;
+    }
+
     const col = await getSponsoredPerfumesCollection();
     const result = await col.findOneAndUpdate(
       { _id: new ObjectId(body.id) },
-      { $set: updates },
+      { $set: updates, $unset: { description: "" } },
       { returnDocument: "after" }
     );
 

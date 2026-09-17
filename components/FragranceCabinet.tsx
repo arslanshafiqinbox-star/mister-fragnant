@@ -41,14 +41,6 @@ type ListResponse<T> = {
 const ALL = "all";
 const INITIAL_VISIBLE = 6;
 
-type SortBy = "rating" | "price";
-
-function parseApproxAmount(value?: string | null): number | null {
-  if (!value) return null;
-  const n = Number(value.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
-
 function RatingDisplay({ rating }: { rating: number | null }) {
   return (
     <span className="font-[family-name:var(--font-hero-serif)] leading-none">
@@ -174,7 +166,6 @@ export default function FragranceCabinet() {
   const [occasionFilter, setOccasionFilter] = useState(ALL);
   const [genderFilter, setGenderFilter] = useState(ALL);
   const [strengthFilter, setStrengthFilter] = useState(ALL);
-  const [sortBy, setSortBy] = useState<SortBy>("rating");
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,16 +282,6 @@ export default function FragranceCabinet() {
     });
 
     return next.slice().sort((a, b) => {
-      if (sortBy === "price") {
-        const pa = parseApproxAmount(a.approx_price);
-        const pb = parseApproxAmount(b.approx_price);
-        if (pa == null && pb == null) {
-          // fall through to rating
-        } else if (pa == null) return 1;
-        else if (pb == null) return -1;
-        else if (pa !== pb) return pa - pb;
-      }
-
       const ra = a.average_rating ?? -1;
       const rb = b.average_rating ?? -1;
       if (rb !== ra) return rb - ra;
@@ -313,12 +294,11 @@ export default function FragranceCabinet() {
     occasionFilter,
     genderFilter,
     strengthFilter,
-    sortBy,
   ]);
 
   useEffect(() => {
     setShowAll(false);
-  }, [search, scentFilter, occasionFilter, genderFilter, strengthFilter, sortBy]);
+  }, [search, scentFilter, occasionFilter, genderFilter, strengthFilter]);
 
   const visible = showAll
     ? filtered
@@ -328,15 +308,9 @@ export default function FragranceCabinet() {
   return (
     <section id="cabinet" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
-          <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
-            Mister Fragrant&apos;s Cabinet
-          </h2>
-          <p className="max-w-sm text-[0.8rem] leading-relaxed text-neutral-600 sm:pt-2 sm:text-right sm:text-[0.85rem]">
-            Choose a scent type, occasion, gender, or strength to narrow things
-            down, check out fragrance reviews, or find out where to buy it.
-          </p>
-        </div>
+        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+          Mister Fragrant&apos;s Cabinet
+        </h2>
 
         <div className="mt-10 border border-black bg-white">
           <div className="border-b border-black px-4 py-4 sm:px-5">
@@ -435,24 +409,6 @@ export default function FragranceCabinet() {
                     onClick={() => setStrengthFilter(s.id)}
                   />
                 ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
-                Sort by
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="Rating"
-                  active={sortBy === "rating"}
-                  onClick={() => setSortBy("rating")}
-                />
-                <FilterChip
-                  label="Price"
-                  active={sortBy === "price"}
-                  onClick={() => setSortBy("price")}
-                />
               </div>
             </div>
           </div>

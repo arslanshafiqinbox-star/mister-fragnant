@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 type FilmDetails = {
   brand?: string;
-  location?: { city?: string; country?: string };
   date?: string;
   duration?: string;
   url?: string;
@@ -14,6 +13,7 @@ type FilmDetails = {
 type FilmRow = {
   id: string;
   name: string;
+  sponsored?: boolean;
   details: FilmDetails;
   created_at: string;
 };
@@ -57,13 +57,8 @@ function formatFilmDate(value: string) {
   });
 }
 
-function locationLine(details: FilmDetails) {
-  const brand = details.brand?.trim() || "";
-  const city = details.location?.city?.trim() || "";
-  const country = details.location?.country?.trim() || "";
-  const place = [city, country].filter(Boolean).join(", ");
-  if (brand && place) return `${brand} — ${place}`;
-  return brand || place || "";
+function brandLine(details: FilmDetails) {
+  return details.brand?.trim() || "";
 }
 
 /** Extract a YouTube video id from watch / share / embed / shorts URLs. */
@@ -166,22 +161,31 @@ function MediaPanel({
 function FeaturedCard({
   film,
   latest,
+  onOpen,
 }: {
   film: FilmRow;
   latest?: boolean;
+  onOpen: () => void;
 }) {
   const details = film.details ?? {};
   const description = details.description ?? "";
   const dateLabel = details.date ? formatFilmDate(details.date) : "";
   const duration = details.duration ?? "";
   const meta = [dateLabel, duration].filter(Boolean).join(" · ");
-  const place = locationLine(details);
+  const brand = brandLine(details);
+  const snippet = description ? excerpt(description, 180) : "";
+  const truncated = Boolean(snippet && snippet.endsWith("…"));
 
   return (
     <article className="overflow-hidden border border-black bg-white shadow-[4px_4px_0_#000]">
       <MediaPanel latest={latest} url={details.url} title={film.name} />
 
-      <div className="p-6 sm:p-8">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-haspopup="dialog"
+        className="w-full p-6 text-left transition-colors hover:bg-[#fafafa] sm:p-8"
+      >
         <div className="flex flex-wrap items-center gap-3">
           {latest ? (
             <span className="inline-block border border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[2px_2px_0_#000]">
@@ -192,6 +196,11 @@ function FeaturedCard({
               Episode
             </span>
           )}
+          {film.sponsored ? (
+            <span className="inline-block bg-yellow-400 px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black">
+              Sponsored
+            </span>
+          ) : null}
           {meta ? (
             <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
               {meta}
@@ -203,18 +212,24 @@ function FeaturedCard({
           {film.name}
         </h3>
 
-        {description ? (
+        {snippet ? (
           <p className="mt-4 max-w-3xl text-[0.9rem] leading-relaxed text-neutral-600">
-            {excerpt(description, 180)}
+            {snippet}
           </p>
         ) : null}
 
-        {place ? (
+        {truncated ? (
+          <span className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-500">
+            Read full description →
+          </span>
+        ) : null}
+
+        {brand ? (
           <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
-            {place}
+            {brand}
           </p>
         ) : null}
-      </div>
+      </button>
     </article>
   );
 }
@@ -246,7 +261,7 @@ function FilmPopup({
   const dateLabel = details.date ? formatFilmDate(details.date) : "";
   const duration = details.duration ?? "";
   const meta = [dateLabel, duration].filter(Boolean).join(" · ");
-  const place = locationLine(details);
+  const brand = brandLine(details);
 
   return (
     <div
@@ -280,6 +295,11 @@ function FilmPopup({
               <span className="inline-block border border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[2px_2px_0_#000]">
                 Episode
               </span>
+              {film.sponsored ? (
+                <span className="inline-block bg-yellow-400 px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black">
+                  Sponsored
+                </span>
+              ) : null}
               {meta ? (
                 <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
                   {meta}
@@ -297,9 +317,9 @@ function FilmPopup({
               </div>
             ) : null}
 
-            {place ? (
+            {brand ? (
               <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
-                {place}
+                {brand}
               </p>
             ) : null}
           </div>
@@ -358,15 +378,9 @@ export default function FragranceFilms() {
   return (
     <section id="films" className="scroll-mt-[4.25rem] bg-[#fafafa] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
-          <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
-            Mister Fragrant Films
-          </h2>
-          <p className="max-w-[20rem] text-[0.75rem] leading-relaxed text-neutral-500 sm:pb-1 sm:text-right sm:text-[0.8rem]">
-            Behind the scenes at the houses, factories, and shows that make the
-            bottle. New episodes regularly, nothing ever taken down.
-          </p>
-        </div>
+        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+          Mister Fragrant Films
+        </h2>
 
         {error ? (
           <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
@@ -388,7 +402,11 @@ export default function FragranceFilms() {
 
         {!loading && featured ? (
           <div className="mt-12">
-            <FeaturedCard film={featured} latest />
+            <FeaturedCard
+              film={featured}
+              latest
+              onOpen={() => setOpenId(featured.id)}
+            />
           </div>
         ) : null}
 
@@ -413,14 +431,21 @@ export default function FragranceFilms() {
                       <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
                         {details.duration || "—"}
                       </span>
-                      <time
-                        dateTime={details.date || film.created_at}
-                        className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400"
-                      >
-                        {details.date
-                          ? formatFilmDate(details.date)
-                          : formatFilmDate(film.created_at)}
-                      </time>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {film.sponsored ? (
+                          <span className="bg-yellow-400 px-1.5 py-0.5 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.1em] text-black">
+                            Sponsored
+                          </span>
+                        ) : null}
+                        <time
+                          dateTime={details.date || film.created_at}
+                          className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400"
+                        >
+                          {details.date
+                            ? formatFilmDate(details.date)
+                            : formatFilmDate(film.created_at)}
+                        </time>
+                      </div>
                     </div>
 
                     <h4 className="mt-5 font-[family-name:var(--font-hero-serif)] text-[1.25rem] font-medium leading-[1.2] tracking-[-0.01em] text-black transition-transform duration-200 group-hover:translate-x-1 sm:text-[1.35rem]">

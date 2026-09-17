@@ -11,10 +11,13 @@ type SponsoredDetails = {
   retailers?: Retailer[];
 };
 
+type PerfumeStatus = "sponsored" | "featured" | "both";
+
 type SponsoredRow = {
   id: string;
   name: string;
   details: SponsoredDetails;
+  status?: PerfumeStatus | null;
 };
 
 type ListResponse = {
@@ -22,6 +25,16 @@ type ListResponse = {
   rows?: SponsoredRow[];
   message?: string;
 };
+
+function htmlToPlain(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function looksLikeHtml(value: string) {
   return /<\/?[a-z][\s\S]*>/i.test(value);
@@ -144,7 +157,14 @@ export default function SponsoredStrip() {
         const res = await fetch("/api/sponsored-perfume");
         const json = (await res.json()) as ListResponse;
         if (!json.ok || cancelled) return;
-        setItem(json.rows?.[0] ?? null);
+        const rows = json.rows ?? [];
+        const withStatus = rows.find(
+          (row) =>
+            row.status === "sponsored" ||
+            row.status === "featured" ||
+            row.status === "both"
+        );
+        setItem(withStatus ?? rows[0] ?? null);
       } catch {
         if (!cancelled) setItem(null);
       }
@@ -161,14 +181,27 @@ export default function SponsoredStrip() {
   const brand = item.details?.brand?.trim() || "";
   const rating =
     typeof item.details?.rating === "number" ? item.details.rating : null;
+  const status = item.status ?? null;
+  const showSponsored = status === "sponsored" || status === "both" || status == null;
+  const showFeatured = status === "featured" || status === "both";
+  const caption =
+    htmlToPlain(item.details?.description ?? "") ||
+    "This week's most popular scent";
 
   return (
     <section className="bg-white px-5 py-15 pb-30 sm:px-8 lg:px-12">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 border border-black bg-white px-4 py-3.5 shadow-[3px_3px_0_#000] sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5 sm:py-4">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:gap-4">
-          <span className="inline-flex w-fit shrink-0 bg-yellow-400 px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
-            Sponsored
-          </span>
+          {showSponsored ? (
+            <span className="inline-flex w-fit shrink-0 bg-yellow-400 px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+              Sponsored
+            </span>
+          ) : null}
+          {showFeatured ? (
+            <span className="inline-flex w-fit shrink-0 bg-[#98FF98] px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+              Featured
+            </span>
+          ) : null}
 
     
 
@@ -186,7 +219,7 @@ export default function SponsoredStrip() {
           </span>
 
           <p className="text-[0.75rem] text-neutral-400 sm:text-[0.8rem]">
-            This week&apos;s most popular scent
+            {caption}
           </p>
 
           {rating != null ? (

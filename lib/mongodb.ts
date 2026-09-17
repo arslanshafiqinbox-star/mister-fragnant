@@ -363,12 +363,15 @@ export type SponsoredPerfumeDetails = {
   retailers: SponsoredPerfumeRetailer[];
 };
 
+export type SponsoredPerfumeStatus = "sponsored" | "featured" | "both";
+
 export type SponsoredPerfumeDoc = {
   _id?: import("mongodb").ObjectId;
   name: string;
   scent_type: import("mongodb").ObjectId[];
   occasion: import("mongodb").ObjectId[];
   details: SponsoredPerfumeDetails;
+  status: SponsoredPerfumeStatus | null;
   created_at: Date;
   updated_at: Date;
 };
@@ -428,7 +431,6 @@ export async function getAlternativesCollection(): Promise<
 
 export type FilmDetails = {
   brand: string;
-  location: { city: string; country: string };
   date: string;
   duration: string;
   url: string;
@@ -438,6 +440,7 @@ export type FilmDetails = {
 export type FilmDoc = {
   _id?: import("mongodb").ObjectId;
   name: string;
+  sponsored?: boolean;
   details: FilmDetails;
   created_at: Date;
   updated_at: Date;

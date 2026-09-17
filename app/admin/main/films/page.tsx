@@ -14,7 +14,6 @@ import HtmlEditor, { htmlIsEmpty } from "@/components/admin/HtmlEditor";
 
 type FilmDetails = {
   brand: string;
-  location: { city: string; country: string };
   date: string;
   duration: string;
   url: string;
@@ -24,6 +23,7 @@ type FilmDetails = {
 type FilmRow = {
   id: string;
   name: string;
+  sponsored?: boolean;
   details: Partial<FilmDetails> & Record<string, unknown>;
   created_at: string;
 };
@@ -33,12 +33,11 @@ type Mode = "create" | "edit" | "delete" | null;
 type FilmForm = {
   name: string;
   brand: string;
-  city: string;
-  country: string;
   date: string;
   duration: string;
   url: string;
   description: string;
+  sponsored: boolean;
 };
 
 function todayIsoDate() {
@@ -81,22 +80,17 @@ function emptyForm(): FilmForm {
   return {
     name: "",
     brand: "",
-    city: "",
-    country: "",
     date: todayIsoDate(),
     duration: "",
     url: "",
     description: "",
+    sponsored: false,
   };
 }
 
 function detailsFromForm(form: FilmForm, duration: string): FilmDetails {
   return {
     brand: form.brand.trim(),
-    location: {
-      city: form.city.trim(),
-      country: form.country.trim(),
-    },
     date: form.date,
     duration,
     url: form.url.trim(),
@@ -106,29 +100,15 @@ function detailsFromForm(form: FilmForm, duration: string): FilmDetails {
 
 function formFromRow(row: FilmRow): FilmForm {
   const d = row.details ?? {};
-  const location =
-    d.location && typeof d.location === "object" && !Array.isArray(d.location)
-      ? (d.location as { city?: string; country?: string })
-      : {};
   return {
     name: row.name ?? "",
     brand: typeof d.brand === "string" ? d.brand : "",
-    city: typeof location.city === "string" ? location.city : "",
-    country: typeof location.country === "string" ? location.country : "",
     date: typeof d.date === "string" && d.date ? d.date : todayIsoDate(),
     duration: typeof d.duration === "string" ? d.duration : "",
     url: typeof d.url === "string" ? d.url : "",
     description: typeof d.description === "string" ? d.description : "",
+    sponsored: Boolean(row.sponsored),
   };
-}
-
-function locationLabel(details: FilmRow["details"]) {
-  const loc = details?.location;
-  if (!loc || typeof loc !== "object" || Array.isArray(loc)) return "—";
-  const city = typeof loc.city === "string" ? loc.city : "";
-  const country = typeof loc.country === "string" ? loc.country : "";
-  if (city && country) return `${city}, ${country}`;
-  return city || country || "—";
 }
 
 export default function AdminFilmsPage() {
@@ -196,6 +176,7 @@ export default function AdminFilmsPage() {
     try {
       const payload = {
         name: form.name.trim(),
+        sponsored: form.sponsored,
         details: detailsFromForm(form, durationParsed.value),
       };
       const res = await fetch("/api/film", {
@@ -242,7 +223,7 @@ export default function AdminFilmsPage() {
     <div>
       <AdminPageHeader
         title="Films"
-        subtitle="Brand, location, date, duration, URL, and HTML description."
+        subtitle="Brand, date, duration, URL, optional sponsored tag, and HTML description."
         action={
           <button
             type="button"
@@ -268,7 +249,7 @@ export default function AdminFilmsPage() {
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Location</th>
+                <th className="px-4 py-3">Sponsored</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Duration</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -293,8 +274,12 @@ export default function AdminFilmsPage() {
                         ? row.details.brand
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-neutral-600">
-                      {locationLabel(row.details)}
+                    <td
+                      className={`px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.08em] ${
+                        row.sponsored ? "text-black" : "text-neutral-400"
+                      }`}
+                    >
+                      {row.sponsored ? "Yes" : "No"}
                     </td>
                     <td className="px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.75rem]">
                       {typeof row.details?.date === "string"
@@ -355,28 +340,18 @@ export default function AdminFilmsPage() {
                 required
               />
             </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="City">
-                <input
-                  className={adminInput}
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="Paris"
-                  required
-                />
-              </Field>
-              <Field label="Country">
-                <input
-                  className={adminInput}
-                  value={form.country}
-                  onChange={(e) =>
-                    setForm({ ...form, country: e.target.value })
-                  }
-                  placeholder="France"
-                  required
-                />
-              </Field>
-            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.sponsored}
+                onChange={(e) =>
+                  setForm({ ...form, sponsored: e.target.checked })
+                }
+              />
+              <span className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em]">
+                Sponsored
+              </span>
+            </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Date">
                 <input

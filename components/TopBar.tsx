@@ -7,11 +7,9 @@ import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "/#cabinet", id: "cabinet", label: "Cabinet" },
-  { href: "/#favourites", id: "favourites", label: "Favourites" },
   { href: "/#alternatives", id: "alternatives", label: "Alternatives" },
   { href: "/#notes", id: "notes", label: "Notes" },
   { href: "/#films", id: "films", label: "Films" },
-  { href: "/#add-scent", id: "add-scent", label: "Add a scent" },
 ];
 
 export default function TopBar() {

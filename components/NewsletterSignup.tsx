@@ -56,8 +56,8 @@ export default function NewsletterSignup() {
         </h2>
 
         <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-neutral-500 sm:text-[1.05rem]">
-          Subscribe to the newsletter for new scent write-ups, occasion picks,
-          and the odd sponsored feature — no spam, unsubscribe any time.
+          Subscribe to the newsletter for fragrance write-ups, occasion picks,
+          and discount codes - unsubscribe anytime.
         </p>
 
         {success ? (

@@ -23,12 +23,15 @@ type SponsoredDetails = {
   retailers: Retailer[];
 };
 
+type PerfumeStatus = "sponsored" | "featured" | "both";
+
 type SponsoredPerfumeRow = {
   id: string;
   name: string;
   scent_type: string[];
   occasion: string[];
   details: Partial<SponsoredDetails> & Record<string, unknown>;
+  status: PerfumeStatus | null;
   created_at: string;
 };
 
@@ -42,6 +45,8 @@ type FormState = {
   description: string;
   rating: string;
   retailers: Retailer[];
+  statusSponsored: boolean;
+  statusFeatured: boolean;
 };
 
 const empty: FormState = {
@@ -52,7 +57,36 @@ const empty: FormState = {
   description: "",
   rating: "",
   retailers: [{ name: "", url: "" }],
+  statusSponsored: false,
+  statusFeatured: false,
 };
+
+function statusFromFlags(
+  sponsored: boolean,
+  featured: boolean
+): PerfumeStatus | null {
+  if (sponsored && featured) return "both";
+  if (sponsored) return "sponsored";
+  if (featured) return "featured";
+  return null;
+}
+
+function statusLabel(status: PerfumeStatus | null) {
+  if (status === "both") return "Sponsored, Featured";
+  if (status === "sponsored") return "Sponsored";
+  if (status === "featured") return "Featured";
+  return "—";
+}
+
+function htmlToPlain(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function toggleId(list: string[], id: string) {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -85,6 +119,8 @@ function detailsFromRow(row: SponsoredPerfumeRow): FormState {
           ? d.rating
           : "",
     retailers: retailers.length > 0 ? retailers : [{ name: "", url: "" }],
+    statusSponsored: row.status === "sponsored" || row.status === "both",
+    statusFeatured: row.status === "featured" || row.status === "both",
   };
 }
 
@@ -188,6 +224,7 @@ export default function AdminSponsoredPerfumesPage() {
         name: form.name.trim(),
         scent_type: form.scent_type,
         occasion: form.occasion,
+        status: statusFromFlags(form.statusSponsored, form.statusFeatured),
         details: {
           brand: form.brand.trim(),
           description: form.description,
@@ -239,7 +276,7 @@ export default function AdminSponsoredPerfumesPage() {
     <div>
       <AdminPageHeader
         title="Sponsored perfumes"
-        subtitle="Name, scent types, occasions, brand, rating, HTML description, and retailers."
+        subtitle="Name, scent types, occasions, brand, rating, HTML description, retailers, and status."
         action={
           <button
             type="button"
@@ -268,13 +305,15 @@ export default function AdminSponsoredPerfumesPage() {
                 <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3">Scent types</th>
                 <th className="px-4 py-3">Occasions</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Description</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-neutral-400">
+                  <td colSpan={8} className="px-4 py-8 text-neutral-400">
                     No sponsored perfumes yet.
                   </td>
                 </tr>
@@ -300,6 +339,18 @@ export default function AdminSponsoredPerfumesPage() {
                     </td>
                     <td className="px-4 py-3 text-neutral-600">
                       {nameById(row.occasion ?? [], occasions)}
+                    </td>
+                    <td
+                      className={`px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.75rem] uppercase tracking-[0.08em] ${
+                        row.status ? "text-black" : "text-neutral-400"
+                      }`}
+                    >
+                      {statusLabel(row.status ?? null)}
+                    </td>
+                    <td className="max-w-[220px] px-4 py-3 text-neutral-600">
+                      {typeof row.details?.description === "string"
+                        ? htmlToPlain(row.details.description) || "—"
+                        : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
@@ -343,6 +394,45 @@ export default function AdminSponsoredPerfumesPage() {
                 placeholder="Lumière No. 7"
                 required
               />
+            </Field>
+
+            <Field label="Status">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      statusSponsored: !form.statusSponsored,
+                      statusFeatured: form.statusSponsored
+                        ? form.statusFeatured
+                        : false,
+                    })
+                  }
+                  className={`${adminBtn} ${
+                    form.statusSponsored ? "bg-black text-white" : "bg-white"
+                  }`}
+                >
+                  Sponsored
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      statusFeatured: !form.statusFeatured,
+                      statusSponsored: form.statusFeatured
+                        ? form.statusSponsored
+                        : false,
+                    })
+                  }
+                  className={`${adminBtn} ${
+                    form.statusFeatured ? "bg-black text-white" : "bg-white"
+                  }`}
+                >
+                  Featured
+                </button>
+              </div>
             </Field>
 
             <Field label="Brand">
@@ -432,7 +522,9 @@ export default function AdminSponsoredPerfumesPage() {
             <Field label="Description (HTML)">
               <HtmlEditor
                 value={form.description}
-                onChange={(description) => setForm({ ...form, description })}
+                onChange={(description) =>
+                  setForm((current) => ({ ...current, description }))
+                }
                 placeholder="Write the sponsored perfume description…"
                 minHeight="200px"
               />
