@@ -290,6 +290,10 @@ export default function FragranceAlternatives() {
         <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
           Mister Fragrant&apos;s Alternatives
         </h2>
+        <p className="mt-4 max-w-3xl text-[0.95rem] leading-relaxed text-neutral-500">
+          Closeness scores are editorial opinion, based on wearing both, not
+          laboratory comparisons or claims of identical formulation.
+        </p>
 
         <div className="mt-8 flex flex-col gap-4">
           <div>
