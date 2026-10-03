@@ -306,6 +306,7 @@ export type FragranceDoc = {
   gender?: import("mongodb").ObjectId[];
   strength?: import("mongodb").ObjectId[];
   approx_price?: string | null;
+  notes?: string[];
   associate_links: AssociateLink[];
   created_at: Date;
   updated_at: Date;

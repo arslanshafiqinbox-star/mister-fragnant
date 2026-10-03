@@ -127,6 +127,7 @@ export async function GET() {
           .map((sid) => strengthMap.get(sid.toHexString()))
           .filter(Boolean),
         approx_price: f.approx_price?.trim() || null,
+        notes: f.notes ?? [],
         associate_links: f.associate_links ?? [],
         total_votes: stats.total_votes,
         average_rating: stats.average_rating,

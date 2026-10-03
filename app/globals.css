@@ -18,6 +18,21 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+@keyframes stamp-inset {
+  from {
+    transform: rotate(var(--stamp-rot, 10deg)) scale(1.2);
+  }
+  to {
+    transform: rotate(var(--stamp-rot, 10deg)) scale(1);
+  }
+}
+
+.stamp-inset {
+  animation: stamp-inset 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
 @keyframes ticker-slide {
   0% {
     transform: translate3d(0, 0, 0);

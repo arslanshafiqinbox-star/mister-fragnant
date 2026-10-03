@@ -136,6 +136,7 @@ export async function GET(request: NextRequest) {
           description: s.description,
         })),
         approx_price: fragrance.approx_price?.trim() || null,
+        notes: fragrance.notes ?? [],
         associate_links: fragrance.associate_links ?? [],
       },
       total_votes: totalVotes,

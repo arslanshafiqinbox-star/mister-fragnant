@@ -145,7 +145,11 @@ function WhereToBuyModal({
   );
 }
 
-export default function SponsoredStrip() {
+export default function SponsoredStrip({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const [item, setItem] = useState<SponsoredRow | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -182,67 +186,105 @@ export default function SponsoredStrip() {
   const rating =
     typeof item.details?.rating === "number" ? item.details.rating : null;
   const status = item.status ?? null;
-  const showSponsored = status === "sponsored" || status === "both" || status == null;
+  const showSponsored =
+    status === "sponsored" || status === "both" || status == null;
   const showFeatured = status === "featured" || status === "both";
   const caption =
     htmlToPlain(item.details?.description ?? "") ||
     "This week's most popular scent";
+  const ratingLabel =
+    rating != null
+      ? `${Number.isInteger(rating) ? rating : rating.toFixed(1)}`
+      : null;
+
+  const badges = (
+    <>
+      {showSponsored ? (
+        <span className="inline-flex w-fit shrink-0 bg-yellow-400 px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+          Sponsored
+        </span>
+      ) : null}
+      {showFeatured ? (
+        <span className="inline-flex w-fit shrink-0 bg-[#98FF98] px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+          Featured
+        </span>
+      ) : null}
+    </>
+  );
+
+  const shopButton = (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className="inline-flex w-full shrink-0 items-center justify-center gap-2 border border-black bg-black px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-white shadow-[4px_4px_0_#d4d4d4] transition-[transform,box-shadow] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0_#d4d4d4] sm:w-auto"
+    >
+      Shop now ↗
+    </button>
+  );
 
   return (
-    <section className="bg-white px-5 py-15 pb-30 sm:px-8 lg:px-12">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 border border-black bg-white px-4 py-3.5 shadow-[3px_3px_0_#000] sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5 sm:py-4">
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:gap-4">
-          {showSponsored ? (
-            <span className="inline-flex w-fit shrink-0 bg-yellow-400 px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
-              Sponsored
-            </span>
+    <section
+      className={
+        compact
+          ? "flex h-full min-h-0 flex-col"
+          : "bg-white px-5 py-15 pb-30 sm:px-8 lg:px-12"
+      }
+    >
+      {compact ? (
+        <div className="flex h-full min-h-0 flex-1 flex-col border border-black bg-white px-7 py-5 shadow-[3px_3px_0_#000] sm:px-8 sm:py-6">
+          <div className="flex flex-wrap items-center gap-2">{badges}</div>
+          <h2 className="mt-4 font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,3.4vw,2.85rem)] font-medium leading-[1.05] tracking-[-0.025em] text-black">
+            {item.name}
+          </h2>
+          {brand ? (
+            <p className="mt-2 text-[0.95rem] text-neutral-400">{brand}</p>
           ) : null}
-          {showFeatured ? (
-            <span className="inline-flex w-fit shrink-0 bg-[#98FF98] px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
-              Featured
+          <div className="mt-auto flex flex-col gap-5 pt-6 sm:flex-row sm:items-end sm:justify-between">
+            <p className="text-[0.75rem] text-neutral-400 sm:text-[0.8rem]">
+              {caption}
+              {ratingLabel ? (
+                <span className="ml-2 font-[family-name:var(--font-geist-mono)] text-black">
+                  {ratingLabel}
+                  <span className="text-neutral-400">/10</span>
+                </span>
+              ) : null}
+            </p>
+            {shopButton}
+          </div>
+        </div>
+      ) : (
+        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 border border-black bg-white px-4 py-3.5 shadow-[3px_3px_0_#000] sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5 sm:py-4">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:gap-4">
+            {badges}
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span className="font-[family-name:var(--font-hero-serif)] text-[1.05rem] font-medium leading-none tracking-[-0.01em] text-black sm:text-[1.15rem]">
+                {item.name}
+              </span>
+              {brand ? (
+                <span className="text-[0.8rem] text-neutral-400">{brand}</span>
+              ) : null}
+            </div>
+            <span className="hidden text-neutral-300 lg:inline" aria-hidden>
+              ·
             </span>
-          ) : null}
-
-    
-
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="font-[family-name:var(--font-hero-serif)] text-[1.05rem] font-medium leading-none tracking-[-0.01em] text-black sm:text-[1.15rem]">
-              {item.name}
-            </span>
-            {brand ? (
-              <span className="text-[0.8rem] text-neutral-400">{brand}</span>
+            <p className="text-[0.75rem] text-neutral-400 sm:text-[0.8rem]">
+              {caption}
+            </p>
+            {rating != null ? (
+              <>
+                <span className="hidden text-neutral-300 sm:inline" aria-hidden>
+                  ·
+                </span>
+                <span className="font-[family-name:var(--font-geist-mono)] text-[0.75rem] text-black sm:text-[0.8rem]">
+                  {ratingLabel}
+                  <span className="text-neutral-400">/10</span>
+                </span>
+              </>
             ) : null}
           </div>
-
-          <span className="hidden text-neutral-300 lg:inline" aria-hidden>
-            ·
-          </span>
-
-          <p className="text-[0.75rem] text-neutral-400 sm:text-[0.8rem]">
-            {caption}
-          </p>
-
-          {rating != null ? (
-            <>
-              <span className="hidden text-neutral-300 sm:inline" aria-hidden>
-                ·
-              </span>
-              <span className="font-[family-name:var(--font-geist-mono)] text-[0.75rem] text-black sm:text-[0.8rem]">
-                {Number.isInteger(rating) ? rating : rating.toFixed(1)}
-                <span className="text-neutral-400">/10</span>
-              </span>
-            </>
-          ) : null}
+          {shopButton}
         </div>
-
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-2 border border-black bg-black px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-white shadow-[5px_5px_0_#cfcfcf] transition-[transform,box-shadow] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[4px_4px_0_#cfcfcf] sm:w-auto"
-        >
-          Shop now ↗
-        </button>
-      </div>
+      )}
 
       {open ? (
         <WhereToBuyModal item={item} onClose={() => setOpen(false)} />

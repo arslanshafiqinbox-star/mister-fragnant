@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import CompareTray, {
-  toggleCompareSelection,
-  type CompareItem,
-} from "@/components/CompareTray";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import FragranceDetailPopup from "@/components/FragranceDetailPopup";
 
 type NamedEntity = {
@@ -39,16 +36,59 @@ type ListResponse<T> = {
 };
 
 const ALL = "all";
-const INITIAL_VISIBLE = 6;
 
-function RatingDisplay({ rating }: { rating: number | null }) {
+function EmptyBottle() {
   return (
-    <span className="font-[family-name:var(--font-hero-serif)] leading-none">
-      <span className="text-[0.95rem] text-black">
-        {rating == null ? "—" : rating.toFixed(1)}
-      </span>
-      <span className="text-[0.7rem] text-neutral-400"> / 10</span>
-    </span>
+    <svg
+      viewBox="0 0 90 140"
+      className="h-40 w-[6.5rem] rotate-[18deg]"
+      aria-hidden
+    >
+      <rect
+        x="34"
+        y="8"
+        width="22"
+        height="14"
+        rx="2"
+        fill="#F5C400"
+        stroke="#111"
+        strokeWidth="3"
+      />
+      <rect
+        x="38"
+        y="22"
+        width="14"
+        height="8"
+        fill="#F5C400"
+        stroke="#111"
+        strokeWidth="3"
+      />
+      <path
+        d="M24 32H66L70 120C70 128 64 134 56 134H34C26 134 20 128 20 120L24 32Z"
+        fill="#F5C400"
+        stroke="#111"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <rect
+        x="34"
+        y="58"
+        width="22"
+        height="16"
+        fill="#fff"
+        stroke="#111"
+        strokeWidth="2.6"
+      />
+      <line
+        x1="38"
+        y1="66"
+        x2="52"
+        y2="66"
+        stroke="#111"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -65,7 +105,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 border border-black px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] transition-colors sm:text-[0.7rem] ${
+      className={`shrink-0 border-2 border-black px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] transition-colors sm:text-[0.7rem] ${
         active
           ? "bg-black text-white"
           : "bg-white text-black hover:bg-neutral-100"
@@ -73,85 +113,6 @@ function FilterChip({
     >
       {label}
     </button>
-  );
-}
-
-function FragranceCard({
-  fragrance,
-  compareSelected,
-  popupOpen,
-  onOpenDetails,
-  onToggleCompare,
-}: {
-  fragrance: FragranceRow;
-  compareSelected: boolean;
-  popupOpen: boolean;
-  onOpenDetails: () => void;
-  onToggleCompare: () => void;
-}) {
-  const scentLabel = fragrance.scent_type[0]?.name ?? "Uncategorized";
-  const btnBase =
-    "inline-flex items-center gap-1 border border-black px-2 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.06em] shadow-[2px_2px_0_#000] transition-[transform,box-shadow] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000]";
-
-  return (
-    <article
-      className="flex h-full cursor-pointer flex-col border border-black bg-white p-3.5 shadow-[3px_3px_0_#000] transition-colors hover:bg-[#f7f7f5] sm:p-4"
-      onClick={onOpenDetails}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpenDetails();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-haspopup="dialog"
-      aria-expanded={popupOpen}
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
-          {scentLabel}
-        </span>
-        <RatingDisplay rating={fragrance.average_rating} />
-      </div>
-
-      <div className="mt-5 flex flex-1 flex-col">
-        <p className="text-[0.7rem] text-neutral-500">{fragrance.brand}</p>
-        <h3 className="mt-1.5 font-[family-name:var(--font-hero-serif)] text-[1.25rem] font-medium leading-[1.15] tracking-[-0.02em] text-black sm:text-[1.35rem]">
-          {fragrance.name}
-        </h3>
-      </div>
-
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        <span className={`${btnBase} bg-black text-white`}>
-          See reviews ({fragrance.total_votes})
-          <span aria-hidden className="text-[0.5rem]">
-            ↗
-          </span>
-        </span>
-
-        <span className={`${btnBase} bg-white text-black`}>
-          Where to buy
-          <span aria-hidden>↗</span>
-        </span>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleCompare();
-          }}
-          aria-pressed={compareSelected}
-          className={`${btnBase} ${
-            compareSelected
-              ? "bg-black text-white"
-              : "bg-white text-black shadow-[1.5px_1.5px_0_#000]"
-          }`}
-        >
-          {compareSelected ? "✓ Compare" : "+ Compare"}
-        </button>
-      </div>
-    </article>
   );
 }
 
@@ -166,26 +127,11 @@ export default function FragranceCabinet() {
   const [occasionFilter, setOccasionFilter] = useState(ALL);
   const [genderFilter, setGenderFilter] = useState(ALL);
   const [strengthFilter, setStrengthFilter] = useState(ALL);
-  const [showAll, setShowAll] = useState(false);
+  const [sortMode, setSortMode] = useState<"az" | "rated">("az");
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [compareItems, setCompareItems] = useState<CompareItem[]>([]);
-
-  function toCompareItem(fragrance: FragranceRow): CompareItem {
-    return {
-      id: fragrance.id,
-      name: fragrance.name,
-      brand: fragrance.brand,
-      occasion: fragrance.occasion,
-      scent_type: fragrance.scent_type,
-      gender: fragrance.gender ?? [],
-      strength: fragrance.strength ?? [],
-      approx_price: fragrance.approx_price ?? null,
-      total_votes: fragrance.total_votes,
-      average_rating: fragrance.average_rating,
-    };
-  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -282,6 +228,15 @@ export default function FragranceCabinet() {
     });
 
     return next.slice().sort((a, b) => {
+      if (sortMode === "az") {
+        const byName = a.name.localeCompare(b.name, undefined, {
+          sensitivity: "base",
+        });
+        if (byName !== 0) return byName;
+        return a.brand.localeCompare(b.brand, undefined, {
+          sensitivity: "base",
+        });
+      }
       const ra = a.average_rating ?? -1;
       const rb = b.average_rating ?? -1;
       if (rb !== ra) return rb - ra;
@@ -294,16 +249,14 @@ export default function FragranceCabinet() {
     occasionFilter,
     genderFilter,
     strengthFilter,
+    sortMode,
   ]);
 
   useEffect(() => {
-    setShowAll(false);
-  }, [search, scentFilter, occasionFilter, genderFilter, strengthFilter]);
-
-  const visible = showAll
-    ? filtered
-    : filtered.slice(0, INITIAL_VISIBLE);
-  const canLoadMore = !showAll && filtered.length > INITIAL_VISIBLE;
+    if (openId && !filtered.some((f) => f.id === openId)) {
+      setOpenId(null);
+    }
+  }, [filtered, openId]);
 
   return (
     <section id="cabinet" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
@@ -312,176 +265,246 @@ export default function FragranceCabinet() {
           Mister Fragrant&apos;s Cabinet
         </h2>
 
-        <div className="mt-10 border border-black bg-white">
-          <div className="border-b border-black px-4 py-4 sm:px-5">
+        <div className="mt-10 border-2 border-black bg-white">
+          <div className="flex flex-col gap-3 border-b-2 border-black px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-5">
             <label className="sr-only" htmlFor="cabinet-search">
-              Search a scent or brand
+              Search by scent name or brand
             </label>
-            <input
-              id="cabinet-search"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search a scent or brand..."
-              className="w-full border-0 border-b border-black bg-transparent pb-2 font-[family-name:var(--font-geist-sans)] text-[0.95rem] text-black outline-none placeholder:text-neutral-400"
-            />
-          </div>
-
-          <div className="flex flex-col gap-5 px-4 py-5 sm:px-5">
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
-                Choose a scent type
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="All"
-                  active={scentFilter === ALL}
-                  onClick={() => setScentFilter(ALL)}
-                />
-                {scentTypes.map((s) => (
-                  <FilterChip
-                    key={s.id}
-                    label={s.name}
-                    active={scentFilter === s.id}
-                    onClick={() => setScentFilter(s.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
-                Choose an occasion
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="All"
-                  active={occasionFilter === ALL}
-                  onClick={() => setOccasionFilter(ALL)}
-                />
-                {occasions.map((o) => (
-                  <FilterChip
-                    key={o.id}
-                    label={o.name}
-                    active={occasionFilter === o.id}
-                    onClick={() => setOccasionFilter(o.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
-                Choose a gender
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="All"
-                  active={genderFilter === ALL}
-                  onClick={() => setGenderFilter(ALL)}
-                />
-                {genders.map((g) => (
-                  <FilterChip
-                    key={g.id}
-                    label={g.name}
-                    active={genderFilter === g.id}
-                    onClick={() => setGenderFilter(g.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-              <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em] text-neutral-500">
-                Choose a strength
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="All"
-                  active={strengthFilter === ALL}
-                  onClick={() => setStrengthFilter(ALL)}
-                />
-                {strengths.map((s) => (
-                  <FilterChip
-                    key={s.id}
-                    label={s.name}
-                    active={strengthFilter === s.id}
-                    onClick={() => setStrengthFilter(s.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {error ? (
-          <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
-            {error}
-          </p>
-        ) : null}
-
-        {loading ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-500">
-            Loading fragrances…
-          </p>
-        ) : (
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {visible.map((fragrance) => (
-              <FragranceCard
-                key={fragrance.id}
-                fragrance={fragrance}
-                popupOpen={openId === fragrance.id}
-                compareSelected={compareItems.some((c) => c.id === fragrance.id)}
-                onOpenDetails={() => setOpenId(fragrance.id)}
-                onToggleCompare={() =>
-                  setCompareItems((list) =>
-                    toggleCompareSelection(list, toCompareItem(fragrance))
-                  )
-                }
+            <div className="relative min-w-0 flex-1">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+                aria-hidden
               />
-            ))}
+              <input
+                id="cabinet-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by scent name or brand"
+                className="w-full border-2 border-black bg-white py-2 pl-10 pr-3 text-[0.9rem] text-black outline-none placeholder:text-neutral-400"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSortMode("az")}
+                className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
+                  sortMode === "az" ? "bg-black text-white" : "bg-white text-black"
+                }`}
+              >
+                A–Z
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortMode("rated")}
+                className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
+                  sortMode === "rated"
+                    ? "bg-black text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                Top rated
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((open) => !open)}
+                className="ml-auto inline-flex items-center gap-1.5 border-2 border-black bg-white px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] text-black sm:ml-4"
+                aria-expanded={filtersOpen}
+              >
+                Filters
+                {filtersOpen ? (
+                  <ChevronUp className="h-3.5 w-3.5" aria-hidden />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+                )}
+              </button>
+            </div>
           </div>
-        )}
 
-        {!loading && !error && canLoadMore ? (
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="border border-black bg-white px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black shadow-[3px_3px_0_#000] transition-[transform,box-shadow] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000]"
-            >
-              Load more
-            </button>
-          </div>
-        ) : null}
+          {filtersOpen ? (
+            <div className="grid grid-cols-1 gap-6 border-b-2 border-black px-4 py-5 sm:px-5 lg:grid-cols-2">
+              <div>
+                <p className="mb-2.5 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+                  Choose a scent type
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label="All"
+                    active={scentFilter === ALL}
+                    onClick={() => setScentFilter(ALL)}
+                  />
+                  {scentTypes.map((s) => (
+                    <FilterChip
+                      key={s.id}
+                      label={s.name}
+                      active={scentFilter === s.id}
+                      onClick={() => setScentFilter(s.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2.5 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+                  Choose an occasion
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label="All"
+                    active={occasionFilter === ALL}
+                    onClick={() => setOccasionFilter(ALL)}
+                  />
+                  {occasions.map((o) => (
+                    <FilterChip
+                      key={o.id}
+                      label={o.name}
+                      active={occasionFilter === o.id}
+                      onClick={() => setOccasionFilter(o.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2.5 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+                  Choose a gender
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label="All"
+                    active={genderFilter === ALL}
+                    onClick={() => setGenderFilter(ALL)}
+                  />
+                  {genders.map((g) => (
+                    <FilterChip
+                      key={g.id}
+                      label={g.name}
+                      active={genderFilter === g.id}
+                      onClick={() => setGenderFilter(g.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2.5 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+                  Choose a strength
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label="All"
+                    active={strengthFilter === ALL}
+                    onClick={() => setStrengthFilter(ALL)}
+                  />
+                  {strengths.map((s) => (
+                    <FilterChip
+                      key={s.id}
+                      label={s.name}
+                      active={strengthFilter === s.id}
+                      onClick={() => setStrengthFilter(s.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
-        {!loading && !error && filtered.length === 0 ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-500">
-            No fragrances match these filters.
-          </p>
-        ) : null}
+          {error ? (
+            <p className="px-4 py-8 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
+              {error}
+            </p>
+          ) : null}
+
+          {loading ? (
+            <p className="px-4 py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+              Loading fragrances…
+            </p>
+          ) : (
+            <div className="grid min-h-[28rem] lg:h-[min(36rem,70vh)] lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
+              <div className="flex min-h-[22rem] flex-col border-b-2 border-black lg:border-b-0 lg:border-r-2">
+                <p className="px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+                  {filtered.length} fragrance{filtered.length === 1 ? "" : "s"}
+                </p>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  {filtered.length === 0 ? (
+                    <p className="px-4 py-8 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
+                      No fragrances match these filters.
+                    </p>
+                  ) : (
+                    filtered.map((fragrance) => {
+                      const active = openId === fragrance.id;
+                      return (
+                        <button
+                          key={fragrance.id}
+                          type="button"
+                          onClick={() =>
+                            setOpenId((id) =>
+                              id === fragrance.id ? null : fragrance.id
+                            )
+                          }
+                          className={`flex w-full items-center justify-between gap-4 border-t px-5 py-4 text-left transition-colors ${
+                            active
+                              ? "border-black bg-black text-white"
+                              : "border-neutral-200 bg-white text-black hover:bg-[#f7f7f5]"
+                          }`}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-[family-name:var(--font-hero-serif)] text-[1.2rem] font-medium leading-tight tracking-[-0.02em]">
+                              {fragrance.name}
+                            </span>
+                            <span
+                              className={`mt-1 block truncate text-[0.8rem] ${
+                                active ? "text-neutral-400" : "text-neutral-400"
+                              }`}
+                            >
+                              {fragrance.brand}
+                            </span>
+                          </span>
+                          <span
+                            className={`mb-0.5 mr-0.5 shrink-0 border-2 px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.8rem] leading-none ${
+                              active
+                                ? "border-white text-white shadow-[2px_2px_0_#fff]"
+                                : "border-black bg-white text-black shadow-[2px_2px_0_#000]"
+                            }`}
+                          >
+                            {fragrance.average_rating == null
+                              ? "—"
+                              : fragrance.average_rating.toFixed(1)}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="relative min-h-[22rem]">
+                {openId ? (
+                  <FragranceDetailPopup
+                    embedded
+                    fragranceId={openId}
+                    onClose={() => setOpenId(null)}
+                    onReviewPosted={async () => {
+                      const catalogRes = await fetch("/api/fragrance/catalog");
+                      const catalogJson =
+                        (await catalogRes.json()) as ListResponse<FragranceRow>;
+                      if (catalogJson.ok) setFragrances(catalogJson.rows ?? []);
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full min-h-[22rem] flex-col items-center justify-center px-6 text-center">
+                    <EmptyBottle />
+                    <h3 className="mt-8 font-[family-name:var(--font-hero-serif)] text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.1] tracking-[-0.02em] text-black">
+                      Pick a fragrance
+                    </h3>
+                    <p className="mt-3 max-w-sm text-[0.95rem] leading-relaxed text-neutral-400">
+                      Choose one from the list to read its reviews and add your
+                      own.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-
-      <CompareTray
-        items={compareItems}
-        onRemove={(id) =>
-          setCompareItems((list) => list.filter((item) => item.id !== id))
-        }
-        onClear={() => setCompareItems([])}
-      />
-
-      {openId ? (
-        <FragranceDetailPopup
-          fragranceId={openId}
-          onClose={() => setOpenId(null)}
-          onReviewPosted={async () => {
-            const catalogRes = await fetch("/api/fragrance/catalog");
-            const catalogJson =
-              (await catalogRes.json()) as ListResponse<FragranceRow>;
-            if (catalogJson.ok) setFragrances(catalogJson.rows ?? []);
-          }}
-        />
-      ) : null}
     </section>
   );
 }

@@ -34,6 +34,7 @@ export type FragrancePopupRow = {
     gender: FragrancePopupNamedEntity[];
     strength: FragrancePopupNamedEntity[];
     approx_price?: string | null;
+    notes?: string[];
     associate_links: FragrancePopupLink[];
   };
   total_votes: number;
@@ -52,9 +53,47 @@ type SummaryResponse = {
 
 function Tag({ children }: { children: ReactNode }) {
   return (
-    <span className="border border-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+    <span className="border-2 border-black px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
       {children}
     </span>
+  );
+}
+
+function FieldGroup({
+  label,
+  items,
+}: {
+  label: string;
+  items: FragrancePopupNamedEntity[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <Tag key={item.id}>{item.name}</Tag>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NoteGroup({ notes }: { notes: string[] }) {
+  if (notes.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
+        Notes
+      </span>
+      <div className="flex flex-wrap gap-1.5">
+        {notes.map((note) => (
+          <Tag key={note}>{note}</Tag>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -85,9 +124,11 @@ export default function FragranceDetailPopup({
   fragranceId,
   onClose,
   onReviewPosted,
+  embedded = false,
 }: {
   row?: FragrancePopupRow;
   fragranceId?: string;
+  embedded?: boolean;
   onClose: () => void;
   onReviewPosted?: () => void;
 }) {
@@ -104,6 +145,7 @@ export default function FragranceDetailPopup({
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [activeLink, setActiveLink] = useState<string | null>(null);
+  const [panel, setPanel] = useState<"none" | "review" | "buy">("none");
 
   const loadSummary = useCallback(async () => {
     if (!id) return;
@@ -142,6 +184,12 @@ export default function FragranceDetailPopup({
   }, [id, initialRow, loadSummary]);
 
   useEffect(() => {
+    setPanel("none");
+    setSubmitMessage(null);
+  }, [id]);
+
+  useEffect(() => {
+    if (embedded) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -154,7 +202,7 @@ export default function FragranceDetailPopup({
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKey);
     };
-  }, [onClose]);
+  }, [onClose, embedded]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -193,6 +241,7 @@ export default function FragranceDetailPopup({
       setName("");
       setComment("");
       setBreakdown(emptyRatingBreakdown());
+      setPanel("none");
       await loadSummary();
       onReviewPosted?.();
     } catch (err) {
@@ -213,48 +262,36 @@ export default function FragranceDetailPopup({
   const genders = fragrance?.gender ?? [];
   const strengths = fragrance?.strength ?? [];
   const approxPrice = fragrance?.approx_price?.trim() || null;
+  const notes = fragrance?.notes ?? [];
   const links = fragrance?.associate_links ?? [];
   const primaryScent = scentTypes[0]?.name ?? "Uncategorized";
   const title = fragrance?.name ?? "Fragrance details";
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-3 backdrop-blur-[1px] sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${title} details`}
-    >
+  const body = (
+    <>
       <button
         type="button"
-        className="absolute inset-0 cursor-default"
-        aria-label="Close popup"
         onClick={onClose}
-      />
+        className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center border border-black bg-white font-[family-name:var(--font-geist-mono)] text-sm text-black shadow-[2px_2px_0_#000] transition hover:bg-black hover:text-white"
+        aria-label="Close"
+      >
+        ×
+      </button>
 
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-[1100px] flex-col overflow-hidden border border-black bg-white shadow-[5px_5px_0_#000]">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center border border-black bg-white font-[family-name:var(--font-geist-mono)] text-sm text-black shadow-[2px_2px_0_#000] transition hover:bg-black hover:text-white"
-          aria-label="Close"
-        >
-          ×
-        </button>
+      {loading && !row ? (
+        <p className="px-8 py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          Loading…
+        </p>
+      ) : null}
 
-        {loading && !row ? (
-          <p className="px-8 py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
-            Loading…
-          </p>
-        ) : null}
+      {loadError && !row ? (
+        <p className="px-8 py-16 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
+          {loadError}
+        </p>
+      ) : null}
 
-        {loadError && !row ? (
-          <p className="px-8 py-16 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
-            {loadError}
-          </p>
-        ) : null}
-
-        {fragrance ? (
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-2">
+      {fragrance ? (
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-2">
             <div className="flex flex-col border-b border-black p-6 sm:p-8 lg:border-b-0 lg:border-r">
               <div className="flex items-start justify-between gap-4 pr-8">
                 <div className="min-w-0">
@@ -414,6 +451,272 @@ export default function FragranceDetailPopup({
             </div>
           </div>
         ) : null}
+    </>
+  );
+
+  if (embedded) {
+    const votesLabel = String(total_votes).padStart(3, "0");
+    const actionBtn =
+      "inline-flex items-center gap-2 border border-black bg-white px-5 py-3.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black shadow-[4px_4px_0_#000]";
+    const actionLink =
+      "font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black underline decoration-neutral-300 underline-offset-[6px]";
+
+    return (
+      <div
+        className="relative flex h-full min-h-0 flex-col overflow-y-auto bg-white p-6 sm:p-8"
+        role="region"
+        aria-label={`${title} details`}
+      >
+        {loading && !row ? (
+          <p className="py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+            Loading…
+          </p>
+        ) : null}
+
+        {loadError && !row ? (
+          <p className="py-16 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
+            {loadError}
+          </p>
+        ) : null}
+
+        {fragrance ? (
+          <>
+            <div className="flex items-start justify-between gap-6">
+              <div className="min-w-0">
+                <p className="text-[0.85rem] text-neutral-400">{fragrance.brand}</p>
+                <h3 className="mt-1 font-[family-name:var(--font-hero-serif)] text-[clamp(2.4rem,5vw,3.6rem)] font-medium leading-[0.95] tracking-[-0.035em] text-black">
+                  {fragrance.name}
+                </h3>
+              </div>
+              <div className="shrink-0 rotate-[8deg] border-2 border-black bg-white px-4 py-3 text-center shadow-[4px_4px_0_#000]">
+                <p className="font-[family-name:var(--font-hero-serif)] leading-none">
+                  <span className="text-[2.15rem] text-black">
+                    {average_rating == null ? "—" : average_rating.toFixed(1)}
+                  </span>
+                  <span className="align-top text-[0.7rem] text-neutral-400">
+                    /10
+                  </span>
+                </p>
+                <p className="mt-1.5 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.14em] text-neutral-400">
+                  {votesLabel} ratings
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+              <NoteGroup notes={notes} />
+              <FieldGroup label="Scent types" items={scentTypes} />
+              <FieldGroup label="Occasions" items={occasions} />
+              <FieldGroup label="Gender" items={genders} />
+              <FieldGroup label="Strength" items={strengths} />
+              {approxPrice ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
+                    Approx. price
+                  </span>
+                  <Tag>{approxPrice}</Tag>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-6 border-t border-neutral-200 pt-6">
+              {panel === "buy" ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPanel("none")}
+                    className={actionBtn}
+                  >
+                    Close where to buy ×
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPanel("review")}
+                    className={actionLink}
+                  >
+                    Write a review +
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPanel((p) => (p === "review" ? "none" : "review"))
+                    }
+                    className={actionBtn}
+                  >
+                    {panel === "review"
+                      ? "Close review form ×"
+                      : "Write a review +"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPanel("buy")}
+                    className={actionLink}
+                  >
+                    Where to buy ↗
+                  </button>
+                </>
+              )}
+            </div>
+
+            {panel === "review" ? (
+              <form
+                onSubmit={handleSubmit}
+                className="mt-6 border border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-7"
+              >
+                <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.65rem] font-medium tracking-[-0.02em] text-black">
+                  Your review of {fragrance.name}
+                </h4>
+                <div className="mt-6">
+                  <RatingSegments
+                    layout="row"
+                    value={breakdown}
+                    onChange={setBreakdown}
+                  />
+                </div>
+                <label className="mt-6 block font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-400">
+                  Name (optional)
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Shown next to your review"
+                  className="mt-2 w-full border-0 border-b border-black bg-transparent pb-2 text-[0.95rem] text-black outline-none placeholder:text-neutral-400"
+                />
+                <label className="mt-6 block font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-400">
+                  Your review
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value.slice(0, 400))}
+                  placeholder="What does it smell like? When would you wear it?"
+                  rows={4}
+                  className="mt-2 w-full resize-none border border-black bg-white px-3 py-3 text-[0.9rem] leading-relaxed text-black outline-none placeholder:text-neutral-400"
+                />
+                <p className="mt-1 text-right font-[family-name:var(--font-geist-mono)] text-[0.6rem] text-neutral-400">
+                  {comment.length} / 400
+                </p>
+                <div className="mt-5 flex flex-wrap items-center gap-4">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="border border-black bg-white px-5 py-3 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-black shadow-[3px_3px_0_#000] disabled:opacity-50"
+                  >
+                    {submitting ? "Posting…" : "Post review →"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPanel("none")}
+                    className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-black underline underline-offset-4"
+                  >
+                    Cancel
+                  </button>
+                  {submitMessage ? (
+                    <p className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-500">
+                      {submitMessage}
+                    </p>
+                  ) : null}
+                </div>
+              </form>
+            ) : null}
+
+            {panel === "buy" ? (
+              <div className="mt-6 border border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-7">
+                <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.65rem] font-medium tracking-[-0.02em] text-black">
+                  Where to buy {fragrance.name}
+                </h4>
+                <p className="mt-3 max-w-lg text-[0.9rem] leading-relaxed text-neutral-500">
+                  You can buy this scent directly through any of the retailers
+                  below.
+                </p>
+                {links.length > 0 ? (
+                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
+                    {links.map((link) => {
+                      const key = `${link.name}-${link.link}`;
+                      const href = link.link.startsWith("http")
+                        ? link.link
+                        : `https://${link.link}`;
+                      return (
+                        <a
+                          key={key}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black underline underline-offset-4 hover:opacity-60"
+                        >
+                          {link.name}
+                          <span aria-hidden>↗</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-6 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.08em] text-neutral-400">
+                    No retailer links yet.
+                  </p>
+                )}
+              </div>
+            ) : null}
+
+            {panel === "none" ? (
+              <div className="mt-10">
+                <div className="flex items-end justify-between gap-4 border-b border-black pb-2">
+                  <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.7rem] font-medium tracking-[-0.02em] text-black">
+                    Reviews
+                  </h4>
+                  <p className="font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.1em] text-neutral-400">
+                    {reviews.length} written
+                  </p>
+                </div>
+                {reviews.length === 0 ? (
+                  <p className="py-6 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
+                    No approved reviews yet.
+                  </p>
+                ) : (
+                  reviews.map((item, index) => (
+                    <div
+                      key={`${item.name}-${index}`}
+                      className="border-b border-neutral-200 py-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-medium text-black">{item.name}</p>
+                        <span className="shrink-0 border-2 border-black bg-white px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-black shadow-[2px_2px_0_#000]">
+                          {item.rating.toFixed(1)}/10
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-[0.9rem] leading-relaxed text-neutral-600">
+                        {item.review}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-3 backdrop-blur-[1px] sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${title} details`}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label="Close popup"
+        onClick={onClose}
+      />
+
+      <div className="relative z-10 flex max-h-[92vh] w-full max-w-[1100px] flex-col overflow-hidden border border-black bg-white shadow-[5px_5px_0_#000]">
+        {body}
       </div>
     </div>
   );

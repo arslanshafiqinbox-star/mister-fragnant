@@ -23,6 +23,7 @@ type FragranceRow = {
   gender: string[];
   strength: string[];
   approx_price: string | null;
+  notes?: string[];
   associate_links: AssociateLink[];
 };
 
@@ -36,6 +37,7 @@ type FormState = {
   gender: string[];
   strength: string[];
   approx_price: string;
+  notes: string;
   associate_links: AssociateLink[];
 };
 
@@ -47,6 +49,7 @@ const empty: FormState = {
   gender: [],
   strength: [],
   approx_price: "",
+  notes: "",
   associate_links: [{ name: "", link: "" }],
 };
 
@@ -129,6 +132,7 @@ export default function AdminFragnancesPage() {
       gender: row.gender ?? [],
       strength: row.strength ?? [],
       approx_price: row.approx_price ?? "",
+      notes: (row.notes ?? []).join(", "),
       associate_links:
         row.associate_links.length > 0
           ? row.associate_links
@@ -160,6 +164,10 @@ export default function AdminFragnancesPage() {
         gender: form.gender,
         strength: form.strength,
         approx_price: form.approx_price.trim() || null,
+        notes: form.notes
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean),
         associate_links: links,
       };
       const res = await fetch("/api/fragrance", {
@@ -327,6 +335,14 @@ export default function AdminFragnancesPage() {
                   setForm({ ...form, approx_price: e.target.value })
                 }
                 placeholder="£145"
+              />
+            </Field>
+            <Field label="Notes (optional, comma-separated)">
+              <input
+                className={adminInput}
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Oud, Hashish accord, Incense"
               />
             </Field>
 

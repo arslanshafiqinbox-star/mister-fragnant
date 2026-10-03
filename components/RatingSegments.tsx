@@ -70,22 +70,32 @@ function SliderRow({
 export default function RatingSegments({
   value,
   onChange,
+  layout = "stack",
 }: {
   value: RatingBreakdown;
   onChange: (next: RatingBreakdown) => void;
+  layout?: "stack" | "row";
 }) {
   const overall = averageRating(value);
 
   return (
     <div className="space-y-5">
-      {RATING_KEYS.map((row) => (
-        <SliderRow
-          key={row.key}
-          label={row.label}
-          value={value[row.key]}
-          onChange={(n) => onChange({ ...value, [row.key]: n })}
-        />
-      ))}
+      <div
+        className={
+          layout === "row"
+            ? "grid grid-cols-1 gap-6 sm:grid-cols-3"
+            : "space-y-5"
+        }
+      >
+        {RATING_KEYS.map((row) => (
+          <SliderRow
+            key={row.key}
+            label={row.label}
+            value={value[row.key]}
+            onChange={(n) => onChange({ ...value, [row.key]: n })}
+          />
+        ))}
+      </div>
 
       <div className="border-t border-dotted border-neutral-400 pt-3">
         <p className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-neutral-500">

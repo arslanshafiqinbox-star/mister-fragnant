@@ -17,6 +17,7 @@ type FragranceInput = {
   gender?: string[];
   strength?: string[];
   approx_price?: string | null;
+  notes?: string[];
   associate_links?: AssociateLink[];
 };
 
@@ -34,6 +35,7 @@ function serialize(doc: FragranceDoc & { _id: ObjectId }) {
     gender: (doc.gender ?? []).map((id) => id.toHexString()),
     strength: (doc.strength ?? []).map((id) => id.toHexString()),
     approx_price: doc.approx_price?.trim() || null,
+    notes: doc.notes ?? [],
     associate_links: doc.associate_links ?? [],
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
@@ -52,6 +54,25 @@ function parseApproxPrice(
     return { error: "approx_price must be a string" };
   }
   return { price: value.trim() || null };
+}
+
+function parseNotes(
+  value: unknown
+): { notes?: string[]; error?: string } {
+  if (value === undefined) return {};
+  if (value === null) return { notes: [] };
+  if (!Array.isArray(value)) {
+    return { error: "notes must be an array of strings" };
+  }
+  const notes: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") {
+      return { error: "notes must contain strings" };
+    }
+    const trimmed = item.trim();
+    if (trimmed) notes.push(trimmed);
+  }
+  return { notes };
 }
 
 function parseIdList(
@@ -145,6 +166,8 @@ export async function POST(request: NextRequest) {
     if (priceParsed.error) return jsonError(priceParsed.error, 400);
     const linksParsed = parseAssociateLinks(body.associate_links ?? []);
     if (linksParsed.error) return jsonError(linksParsed.error, 400);
+    const notesParsed = parseNotes(body.notes ?? []);
+    if (notesParsed.error) return jsonError(notesParsed.error, 400);
 
     const occasionIds = occasionParsed.ids ?? [];
     const scentIds = scentParsed.ids ?? [];
@@ -171,6 +194,7 @@ export async function POST(request: NextRequest) {
       gender: genderIds,
       strength: strengthIds,
       approx_price: approxPrice,
+      notes: notesParsed.notes ?? [],
       associate_links: associateLinks,
       created_at: now,
       updated_at: now,
@@ -260,6 +284,12 @@ export async function PUT(request: NextRequest) {
       const parsed = parseAssociateLinks(body.associate_links);
       if (parsed.error) return jsonError(parsed.error, 400);
       updates.associate_links = parsed.links ?? [];
+    }
+
+    if (body.notes !== undefined) {
+      const parsed = parseNotes(body.notes);
+      if (parsed.error) return jsonError(parsed.error, 400);
+      updates.notes = parsed.notes ?? [];
     }
 
     const col = await getFragrancesCollection();

@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-type NamedEntity = {
-  id: string;
-  name: string;
-};
+import { Search } from "lucide-react";
 
 type FragrancePrice = {
   amount: number;
@@ -43,19 +39,11 @@ type AlternativeRow = {
   comparison: AlternativeComparison;
 };
 
-type NamedListResponse = {
-  ok: boolean;
-  rows?: NamedEntity[];
-  message?: string;
-};
-
 type ListResponse = {
   ok: boolean;
   rows?: AlternativeRow[];
   message?: string;
 };
-
-const ALL = "all";
 
 function formatPrice(price?: FragrancePrice) {
   if (!price || typeof price.amount !== "number") return "—";
@@ -69,6 +57,12 @@ function formatPrice(price?: FragrancePrice) {
 function closenessLabel(value?: string) {
   if (!value) return "—";
   return value.includes("/") ? value : `${value}/10`;
+}
+
+function closenessScore(value?: string) {
+  if (!value) return -1;
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : -1;
 }
 
 function AlternativeModal({
@@ -123,8 +117,8 @@ function AlternativeModal({
       />
 
       <div className="relative z-10 w-full max-w-3xl">
-        <article className="max-h-[85vh] overflow-y-auto border border-black bg-white p-5 shadow-[6px_6px_0_#000] sm:p-8">
-          <span className="inline-block border border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
+        <article className="max-h-[85vh] overflow-y-auto border-2 border-black bg-white p-5 shadow-[6px_6px_0_#000] sm:p-8">
+          <span className="inline-block border-2 border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
             Closeness: {closeness}
           </span>
 
@@ -132,7 +126,7 @@ function AlternativeModal({
             {title}
           </h2>
 
-          <div className="mt-8 overflow-x-auto border border-black">
+          <div className="mt-8 overflow-x-auto border-2 border-black">
             <div className="grid min-w-[520px] grid-cols-[5.5rem_1fr_1fr]">
               <div className="border-b border-r border-black px-3 py-4 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-400">
                 Brand
@@ -168,7 +162,7 @@ function AlternativeModal({
                   {(f1?.notes ?? []).map((note) => (
                     <span
                       key={`f1-${note}`}
-                      className="border border-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.08em] text-black"
+                      className="border-2 border-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.08em] text-black"
                     >
                       {note}
                     </span>
@@ -180,7 +174,7 @@ function AlternativeModal({
                   {(f2?.notes ?? []).map((note) => (
                     <span
                       key={`f2-${note}`}
-                      className="border border-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.08em] text-black"
+                      className="border-2 border-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.08em] text-black"
                     >
                       {note}
                     </span>
@@ -209,14 +203,10 @@ function AlternativeModal({
 
 export default function FragranceAlternatives() {
   const [rows, setRows] = useState<AlternativeRow[]>([]);
-  const [scentTypes, setScentTypes] = useState<NamedEntity[]>([]);
-  const [genders, setGenders] = useState<NamedEntity[]>([]);
-  const [strengths, setStrengths] = useState<NamedEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [scentFilter, setScentFilter] = useState(ALL);
-  const [genderFilter, setGenderFilter] = useState(ALL);
-  const [strengthFilter, setStrengthFilter] = useState(ALL);
+  const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<"az" | "rated">("az");
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -226,25 +216,12 @@ export default function FragranceAlternatives() {
       setLoading(true);
       setError(null);
       try {
-        const [aRes, sRes, gRes, stRes] = await Promise.all([
-          fetch("/api/alternative"),
-          fetch("/api/scent-type"),
-          fetch("/api/gender"),
-          fetch("/api/strength"),
-        ]);
-        const [aJson, sJson, gJson, stJson] = (await Promise.all([
-          aRes.json(),
-          sRes.json(),
-          gRes.json(),
-          stRes.json(),
-        ])) as [ListResponse, NamedListResponse, NamedListResponse, NamedListResponse];
+        const aRes = await fetch("/api/alternative");
+        const aJson = (await aRes.json()) as ListResponse;
 
         if (!aJson.ok) throw new Error(aJson.message || "Failed to load");
         if (!cancelled) {
           setRows(aJson.rows ?? []);
-          setScentTypes(sJson.rows ?? []);
-          setGenders(gJson.rows ?? []);
-          setStrengths(stJson.rows ?? []);
         }
       } catch (e) {
         if (!cancelled) {
@@ -262,22 +239,41 @@ export default function FragranceAlternatives() {
   }, []);
 
   const filtered = useMemo(() => {
-    return rows.filter((row) => {
-      if (scentFilter !== ALL && !(row.scent_type ?? []).includes(scentFilter)) {
-        return false;
-      }
-      if (genderFilter !== ALL && !(row.gender ?? []).includes(genderFilter)) {
-        return false;
-      }
-      if (
-        strengthFilter !== ALL &&
-        !(row.strength ?? []).includes(strengthFilter)
-      ) {
-        return false;
-      }
-      return true;
+    const q = search.trim().toLowerCase();
+    const next = rows.filter((row) => {
+      if (!q) return true;
+      const pair = row.comparison?.comparison;
+      const hay = [
+        row.name,
+        pair?.fragrance1?.name,
+        pair?.fragrance1?.brand,
+        pair?.fragrance2?.name,
+        pair?.fragrance2?.brand,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
     });
-  }, [rows, scentFilter, genderFilter, strengthFilter]);
+
+    next.sort((a, b) => {
+      if (sortMode === "rated") {
+        return (
+          closenessScore(b.comparison?.closeness) -
+          closenessScore(a.comparison?.closeness)
+        );
+      }
+      const aName = (
+        a.comparison?.comparison?.fragrance1?.name || a.name
+      ).toLowerCase();
+      const bName = (
+        b.comparison?.comparison?.fragrance1?.name || b.name
+      ).toLowerCase();
+      return aName.localeCompare(bName);
+    });
+
+    return next;
+  }, [rows, search, sortMode]);
 
   const openRow = useMemo(
     () => rows.find((r) => r.id === openId) ?? null,
@@ -295,105 +291,45 @@ export default function FragranceAlternatives() {
           laboratory comparisons or claims of identical formulation.
         </p>
 
-        <div className="mt-8 flex flex-col gap-4">
-          <div>
-            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
-              Filter by type
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setScentFilter(ALL)}
-                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                  scentFilter === ALL ? "bg-black text-white" : "bg-white text-black"
-                }`}
-              >
-                All
-              </button>
-              {scentTypes.map((s) => {
-                const active = scentFilter === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setScentFilter(s.id)}
-                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                      active ? "bg-black text-white" : "bg-white text-black"
-                    }`}
-                  >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label className="sr-only" htmlFor="alternatives-search">
+            Search by scent name or brand
+          </label>
+          <div className="relative min-w-0 sm:max-w-md sm:flex-1">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+              aria-hidden
+            />
+            <input
+              id="alternatives-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by scent name or brand"
+              className="w-full border-2 border-black bg-white py-2 pl-10 pr-3 text-[0.9rem] text-black outline-none placeholder:text-neutral-400"
+            />
           </div>
-
-          <div>
-            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
-              Filter by gender
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setGenderFilter(ALL)}
-                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                  genderFilter === ALL
-                    ? "bg-black text-white"
-                    : "bg-white text-black"
-                }`}
-              >
-                All
-              </button>
-              {genders.map((g) => {
-                const active = genderFilter === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setGenderFilter(g.id)}
-                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                      active ? "bg-black text-white" : "bg-white text-black"
-                    }`}
-                  >
-                    {g.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-3 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
-              Filter by strength
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setStrengthFilter(ALL)}
-                className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                  strengthFilter === ALL
-                    ? "bg-black text-white"
-                    : "bg-white text-black"
-                }`}
-              >
-                All
-              </button>
-              {strengths.map((s) => {
-                const active = strengthFilter === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setStrengthFilter(s.id)}
-                    className={`border border-black px-3 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.1em] ${
-                      active ? "bg-black text-white" : "bg-white text-black"
-                    }`}
-                  >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSortMode("az")}
+              className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
+                sortMode === "az" ? "bg-black text-white" : "bg-white text-black"
+              }`}
+            >
+              A–Z
+            </button>
+            <button
+              type="button"
+              onClick={() => setSortMode("rated")}
+              className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
+                sortMode === "rated"
+                  ? "bg-black text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              Top rated
+            </button>
           </div>
         </div>
 
@@ -411,7 +347,7 @@ export default function FragranceAlternatives() {
 
         {!loading && !error && filtered.length === 0 ? (
           <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
-            No alternatives match these filters.
+            No alternatives match this search.
           </p>
         ) : null}
 
@@ -443,7 +379,7 @@ export default function FragranceAlternatives() {
                     <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
                       {formatPrice(f2?.price)}
                     </span>
-                    <span className="shrink-0 border border-black bg-white px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium text-black shadow-[3px_3px_0_#000]">
+                    <span className="mb-0.5 mr-0.5 shrink-0 border-2 border-black bg-white px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium text-black shadow-[3px_3px_0_#000]">
                       {closeness}{" "}
                       <span className="font-normal text-neutral-500">close</span>
                     </span>
