@@ -258,6 +258,15 @@ export default function FragranceCabinet() {
     }
   }, [filtered, openId]);
 
+  useEffect(() => {
+    if (!openId || typeof window === "undefined") return;
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+    document.getElementById("cabinet")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [openId]);
+
   return (
     <section id="cabinet" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
@@ -266,7 +275,11 @@ export default function FragranceCabinet() {
         </h2>
 
         <div className="mt-10 border-2 border-black bg-white">
-          <div className="flex flex-col gap-3 border-b-2 border-black px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-5">
+          <div
+            className={`flex-col gap-3 border-b-2 border-black px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-5 ${
+              openId ? "hidden lg:flex" : "flex"
+            }`}
+          >
             <label className="sr-only" htmlFor="cabinet-search">
               Search by scent name or brand
             </label>
@@ -322,7 +335,11 @@ export default function FragranceCabinet() {
           </div>
 
           {filtersOpen ? (
-            <div className="grid grid-cols-1 gap-6 border-b-2 border-black px-4 py-5 sm:px-5 lg:grid-cols-2">
+            <div
+              className={`grid-cols-1 gap-6 border-b-2 border-black px-4 py-5 sm:px-5 lg:grid-cols-2 ${
+                openId ? "hidden lg:grid" : "grid"
+              }`}
+            >
               <div>
                 <p className="mb-2.5 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
                   Choose a scent type
@@ -417,9 +434,17 @@ export default function FragranceCabinet() {
               Loading fragrances…
             </p>
           ) : (
-            <div className="grid min-h-[28rem] lg:h-[min(36rem,70vh)] lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-              <div className="flex min-h-[22rem] flex-col border-b-2 border-black lg:border-b-0 lg:border-r-2">
-                <p className="px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
+            <div
+              className={`grid lg:h-[min(36rem,70vh)] lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] ${
+                openId ? "h-auto" : "h-[min(32rem,62vh)]"
+              }`}
+            >
+              <div
+                className={`h-full min-h-0 flex-col border-b-2 border-black lg:border-b-0 lg:border-r-2 ${
+                  openId ? "hidden lg:flex" : "flex"
+                }`}
+              >
+                <p className="shrink-0 px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-400">
                   {filtered.length} fragrance{filtered.length === 1 ? "" : "s"}
                 </p>
                 <div className="min-h-0 flex-1 overflow-y-auto">
@@ -434,11 +459,7 @@ export default function FragranceCabinet() {
                         <button
                           key={fragrance.id}
                           type="button"
-                          onClick={() =>
-                            setOpenId((id) =>
-                              id === fragrance.id ? null : fragrance.id
-                            )
-                          }
+                          onClick={() => setOpenId(fragrance.id)}
                           className={`flex w-full items-center justify-between gap-4 border-t px-5 py-4 text-left transition-colors ${
                             active
                               ? "border-black bg-black text-white"
@@ -475,7 +496,13 @@ export default function FragranceCabinet() {
                 </div>
               </div>
 
-              <div className="relative min-h-[22rem]">
+              <div
+                className={`relative min-h-0 ${
+                  openId
+                    ? "max-lg:h-auto max-lg:overflow-visible lg:h-full lg:overflow-hidden"
+                    : "hidden h-full overflow-hidden lg:block"
+                }`}
+              >
                 {openId ? (
                   <FragranceDetailPopup
                     embedded
@@ -489,7 +516,7 @@ export default function FragranceCabinet() {
                     }}
                   />
                 ) : (
-                  <div className="flex h-full min-h-[22rem] flex-col items-center justify-center px-6 text-center">
+                  <div className="flex h-full min-h-0 flex-col items-center justify-center overflow-y-auto px-6 text-center">
                     <EmptyBottle />
                     <h3 className="mt-8 font-[family-name:var(--font-hero-serif)] text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.1] tracking-[-0.02em] text-black">
                       Pick a fragrance

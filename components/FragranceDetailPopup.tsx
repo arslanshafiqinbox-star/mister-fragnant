@@ -463,7 +463,11 @@ export default function FragranceDetailPopup({
 
     return (
       <div
-        className="relative flex h-full min-h-0 flex-col overflow-y-auto bg-white p-6 sm:p-8"
+        className={`relative flex min-h-0 flex-col bg-white p-6 sm:p-8 ${
+          panel === "none"
+            ? "h-auto overflow-visible lg:h-full lg:overflow-hidden"
+            : "h-auto overflow-y-auto lg:h-full"
+        }`}
         role="region"
         aria-label={`${title} details`}
       >
@@ -481,6 +485,14 @@ export default function FragranceDetailPopup({
 
         {fragrance ? (
           <>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mb-6 inline-flex items-center gap-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black lg:hidden"
+            >
+              <span aria-hidden>←</span>
+              All fragrances
+            </button>
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <p className="text-[0.85rem] text-neutral-400">{fragrance.brand}</p>
@@ -662,8 +674,8 @@ export default function FragranceDetailPopup({
             ) : null}
 
             {panel === "none" ? (
-              <div className="mt-10">
-                <div className="flex items-end justify-between gap-4 border-b border-black pb-2">
+              <div className="mt-10 flex min-h-0 flex-1 flex-col">
+                <div className="flex shrink-0 items-end justify-between gap-4 border-b border-black pb-2">
                   <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.7rem] font-medium tracking-[-0.02em] text-black">
                     Reviews
                   </h4>
@@ -671,28 +683,30 @@ export default function FragranceDetailPopup({
                     {reviews.length} written
                   </p>
                 </div>
-                {reviews.length === 0 ? (
-                  <p className="py-6 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
-                    No approved reviews yet.
-                  </p>
-                ) : (
-                  reviews.map((item, index) => (
-                    <div
-                      key={`${item.name}-${index}`}
-                      className="border-b border-neutral-200 py-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="font-medium text-black">{item.name}</p>
-                        <span className="shrink-0 border-2 border-black bg-white px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-black shadow-[2px_2px_0_#000]">
-                          {item.rating.toFixed(1)}/10
-                        </span>
+                <div className="h-[13.5rem] overflow-y-auto">
+                  {reviews.length === 0 ? (
+                    <p className="py-6 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
+                      No approved reviews yet.
+                    </p>
+                  ) : (
+                    reviews.map((item, index) => (
+                      <div
+                        key={`${item.name}-${index}`}
+                        className="border-b border-neutral-200 py-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="font-medium text-black">{item.name}</p>
+                          <span className="shrink-0 border-2 border-black bg-white px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-black shadow-[2px_2px_0_#000]">
+                            {item.rating.toFixed(1)}/10
+                          </span>
+                        </div>
+                        <p className="mt-1.5 text-[0.9rem] leading-relaxed text-neutral-600">
+                          {item.review}
+                        </p>
                       </div>
-                      <p className="mt-1.5 text-[0.9rem] leading-relaxed text-neutral-600">
-                        {item.review}
-                      </p>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
             ) : null}
           </>

@@ -352,7 +352,7 @@ export default function FragranceAlternatives() {
         ) : null}
 
         {!loading && filtered.length > 0 ? (
-          <div className="mt-8 border-t border-black">
+          <div className="mt-8 max-h-[min(32rem,62vh)] overflow-y-auto border-t border-black">
             {filtered.map((row) => {
               const pair = row.comparison?.comparison;
               const f1 = pair?.fragrance1;
