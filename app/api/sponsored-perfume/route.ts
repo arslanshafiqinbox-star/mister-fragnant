@@ -22,6 +22,12 @@ function jsonError(message: string, status: number, details?: unknown) {
   return NextResponse.json({ ok: false, message, details }, { status });
 }
 
+function displayRank(rank: number | undefined) {
+  return typeof rank === "number" && Number.isInteger(rank) && rank >= 1
+    ? rank
+    : null;
+}
+
 function serialize(doc: SponsoredPerfumeDoc & { _id: ObjectId }) {
   return {
     id: doc._id.toHexString(),
@@ -35,7 +41,7 @@ function serialize(doc: SponsoredPerfumeDoc & { _id: ObjectId }) {
       retailers: doc.details?.retailers ?? [],
     },
     status: doc.status ?? null,
-    rank: Number.isInteger(doc.rank) && doc.rank >= 1 ? doc.rank : null,
+    rank: displayRank(doc.rank),
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
   };
@@ -164,8 +170,8 @@ export async function GET() {
     const col = await getSponsoredPerfumesCollection();
     const docs = await col.find({}).toArray();
     docs.sort((a, b) => {
-      const ar = Number.isInteger(a.rank) && a.rank >= 1 ? a.rank : Number.POSITIVE_INFINITY;
-      const br = Number.isInteger(b.rank) && b.rank >= 1 ? b.rank : Number.POSITIVE_INFINITY;
+      const ar = displayRank(a.rank) ?? Number.POSITIVE_INFINITY;
+      const br = displayRank(b.rank) ?? Number.POSITIVE_INFINITY;
       if (ar !== br) return ar - br;
       return b.created_at.getTime() - a.created_at.getTime();
     });

@@ -39,7 +39,12 @@ export default function SponsoredFive() {
         const res = await fetch("/api/sponsored-perfume");
         const json = (await res.json()) as ListResponse;
         if (!json.ok || cancelled) return;
-        setRows((json.rows ?? []).slice(0, 5));
+        const sorted = [...(json.rows ?? [])].sort((a, b) => {
+          const ar = a.rank != null && a.rank >= 1 ? a.rank : Number.POSITIVE_INFINITY;
+          const br = b.rank != null && b.rank >= 1 ? b.rank : Number.POSITIVE_INFINITY;
+          return ar - br;
+        });
+        setRows(sorted.slice(0, 5));
       } catch {
         if (!cancelled) setRows([]);
       }
