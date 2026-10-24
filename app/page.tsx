@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import TopBar from "@/components/TopBar";
+import SponsoredFive from "@/components/SponsoredFive";
 import FragranceStrip from "@/components/FragranceStrip";
 import FragranceCabinet from "@/components/FragranceCabinet";
 import FragranceFavourites from "@/components/FragranceFavourites";
@@ -15,6 +16,7 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       <TopBar />
       <Hero />
+      <SponsoredFive />
       <FragranceStrip />
       <FragranceCabinet />
       {/* <FragranceFavourites /> */}

@@ -1,47 +1,47 @@
-import Image from "next/image";
-import Link from "next/link";
-import type { CSSProperties } from "react";
-import SponsoredStrip from "@/components/SponsoredStrip";
+// import Image from "next/image";
+// import Link from "next/link";
+// import type { CSSProperties } from "react";
+// import SponsoredStrip from "@/components/SponsoredStrip";
 
-const actions = [
-  { href: "/#cabinet", label: "Match a scent to the occasion" },
-  { href: "/#notes", label: "Read and write reviews" },
-  { href: "/#alternatives", label: "Find cheaper alternatives" },
-  { href: "/#cabinet", label: "Links to where to buy" },
-];
+// const actions = [
+//   { href: "/#cabinet", label: "Match a scent to the occasion" },
+//   { href: "/#notes", label: "Read and write reviews" },
+//   { href: "/#alternatives", label: "Find cheaper alternatives" },
+//   { href: "/#cabinet", label: "Links to where to buy" },
+// ];
 
-function Stamp({
-  className,
-  rotate = "10deg",
-  alt = "Mister Fragrant postage stamp",
-}: {
-  className?: string;
-  rotate?: string;
-  alt?: string;
-}) {
-  return (
-    <Image
-      src="/stamp.png"
-      alt={alt}
-      width={420}
-      height={520}
-      priority
-      className={`stamp-inset object-contain ${className ?? ""}`}
-      style={{ "--stamp-rot": rotate } as CSSProperties}
-    />
-  );
-}
+// function Stamp({
+//   className,
+//   rotate = "10deg",
+//   alt = "Mister Fragrant postage stamp",
+// }: {
+//   className?: string;
+//   rotate?: string;
+//   alt?: string;
+// }) {
+//   return (
+//     <Image
+//       src="/stamp.png"
+//       alt={alt}
+//       width={420}
+//       height={520}
+//       priority
+//       className={`stamp-inset object-contain ${className ?? ""}`}
+//       style={{ "--stamp-rot": rotate } as CSSProperties}
+//     />
+//   );
+// }
 
 export default function Hero() {
   return (
     <section className="bg-white px-5 pb-16 pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pb-20 lg:pt-10">
       <div className="mx-auto w-full max-w-[1400px]">
-        <div className="flex items-start justify-between gap-8">
-          <h1 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2.85rem,6.2vw,5.75rem)] font-medium leading-[0.95] tracking-[-0.03em] text-black">
-            <span className="block">Stay cool.</span>
-            <span className="block">Smell great.</span>
-          </h1>
+        <h1 className="font-[family-name:var(--font-hero-serif)] text-[clamp(3.85rem,7.2vw,7.75rem)] font-medium leading-[0.95] tracking-[-0.03em] text-black">
+          <span className="block">Stay cool.</span>
+          <span className="block">Smell great.</span>
+        </h1>
 
+        {/* <div className="flex items-start justify-between gap-8">
           <Stamp className="mt-1 hidden w-[13.5rem] shrink-0 drop-shadow-[3px_8px_10px_rgba(0,0,0,0.16)] lg:block" />
         </div>
 
@@ -73,7 +73,7 @@ export default function Hero() {
           <div className="flex h-full min-w-0 flex-col">
             <SponsoredStrip compact />
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

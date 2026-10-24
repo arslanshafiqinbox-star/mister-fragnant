@@ -15,6 +15,7 @@ type SponsoredPerfumeInput = {
   occasion?: string[];
   details?: unknown;
   status?: unknown;
+  rank?: unknown;
 };
 
 function jsonError(message: string, status: number, details?: unknown) {
@@ -34,6 +35,7 @@ function serialize(doc: SponsoredPerfumeDoc & { _id: ObjectId }) {
       retailers: doc.details?.retailers ?? [],
     },
     status: doc.status ?? null,
+    rank: Number.isInteger(doc.rank) && doc.rank >= 1 ? doc.rank : null,
     created_at: doc.created_at.toISOString(),
     updated_at: doc.updated_at.toISOString(),
   };
@@ -98,6 +100,20 @@ function parseDetails(
   };
 }
 
+function parseRank(value: unknown): { rank?: number; error?: string } {
+  if (value === undefined) return {};
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim()
+        ? Number(value)
+        : NaN;
+  if (!Number.isInteger(n) || n < 1) {
+    return { error: "rank must be a natural number (1, 2, 3, …)" };
+  }
+  return { rank: n };
+}
+
 function parseStatus(
   value: unknown
 ): { status?: SponsoredPerfumeStatus | null; error?: string } {
@@ -146,7 +162,13 @@ async function assertIdsExist(
 export async function GET() {
   try {
     const col = await getSponsoredPerfumesCollection();
-    const docs = await col.find({}).sort({ created_at: -1 }).toArray();
+    const docs = await col.find({}).toArray();
+    docs.sort((a, b) => {
+      const ar = Number.isInteger(a.rank) && a.rank >= 1 ? a.rank : Number.POSITIVE_INFINITY;
+      const br = Number.isInteger(b.rank) && b.rank >= 1 ? b.rank : Number.POSITIVE_INFINITY;
+      if (ar !== br) return ar - br;
+      return b.created_at.getTime() - a.created_at.getTime();
+    });
 
     return NextResponse.json({
       ok: true,
@@ -176,6 +198,9 @@ export async function POST(request: NextRequest) {
     if (occasionParsed.error) return jsonError(occasionParsed.error, 400);
     const statusParsed = parseStatus(body.status === undefined ? null : body.status);
     if (statusParsed.error) return jsonError(statusParsed.error, 400);
+    const rankParsed = parseRank(body.rank);
+    if (rankParsed.error) return jsonError(rankParsed.error, 400);
+    if (rankParsed.rank == null) return jsonError("rank is required", 400);
 
     const scentIds = scentParsed.ids ?? [];
     const occasionIds = occasionParsed.ids ?? [];
@@ -192,6 +217,7 @@ export async function POST(request: NextRequest) {
       occasion: occasionIds,
       details: detailsParsed.details,
       status: statusParsed.status ?? null,
+      rank: rankParsed.rank,
       created_at: now,
       updated_at: now,
     };
@@ -258,6 +284,13 @@ export async function PUT(request: NextRequest) {
       const parsed = parseStatus(body.status);
       if (parsed.error) return jsonError(parsed.error, 400);
       updates.status = parsed.status ?? null;
+    }
+
+    if (body.rank !== undefined) {
+      const parsed = parseRank(body.rank);
+      if (parsed.error) return jsonError(parsed.error, 400);
+      if (parsed.rank == null) return jsonError("rank is required", 400);
+      updates.rank = parsed.rank;
     }
 
     const col = await getSponsoredPerfumesCollection();

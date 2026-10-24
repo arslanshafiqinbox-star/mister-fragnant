@@ -13,11 +13,12 @@ type SponsoredDetails = {
 
 type PerfumeStatus = "sponsored" | "featured" | "both";
 
-type SponsoredRow = {
+export type SponsoredRow = {
   id: string;
   name: string;
   details: SponsoredDetails;
   status?: PerfumeStatus | null;
+  rank?: number | null;
 };
 
 type ListResponse = {
@@ -36,28 +37,7 @@ function htmlToPlain(value: string) {
     .trim();
 }
 
-function looksLikeHtml(value: string) {
-  return /<\/?[a-z][\s\S]*>/i.test(value);
-}
-
-function DescriptionBody({ content }: { content: string }) {
-  if (looksLikeHtml(content)) {
-    return (
-      <div
-        className="space-y-3 text-[0.9rem] leading-relaxed text-neutral-600 [&_a]:underline [&_li]:ml-5 [&_li]:list-disc [&_p]:mb-3 [&_strong]:text-black"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-    );
-  }
-
-  return (
-    <p className="whitespace-pre-wrap text-[0.9rem] leading-relaxed text-neutral-600">
-      {content}
-    </p>
-  );
-}
-
-function WhereToBuyModal({
+export function WhereToBuyModal({
   item,
   onClose,
 }: {
@@ -65,7 +45,6 @@ function WhereToBuyModal({
   onClose: () => void;
 }) {
   const brand = item.details?.brand?.trim() || "";
-  const description = item.details?.description?.trim() || "";
   const retailers = (item.details?.retailers ?? []).filter(
     (r) => r?.name?.trim() && r?.url?.trim()
   );
@@ -87,7 +66,7 @@ function WhereToBuyModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-3 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-label={`Where to buy ${item.name}`}
@@ -99,43 +78,37 @@ function WhereToBuyModal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-xl">
-        <article className="max-h-[85vh] overflow-y-auto border border-black bg-white p-6 shadow-[6px_6px_0_#000] sm:p-8">
-          <span className="inline-block border border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black">
+      <div className="relative z-10 w-full max-w-5xl">
+        <article className="border-2 border-black bg-white px-6 py-8 shadow-[8px_8px_0_#000] sm:px-10 sm:py-10">
+          <span className="inline-block border-2 border-black bg-white px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
             Where to buy
           </span>
 
-          <h2 className="mt-5 font-[family-name:var(--font-hero-serif)] text-[clamp(1.75rem,4vw,2.5rem)] font-medium leading-[1.1] tracking-[-0.02em] text-black">
+          <h2 className="mt-6 font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,4vw,2.85rem)] font-medium leading-[1.08] tracking-[-0.03em] text-black">
             {item.name}
           </h2>
 
-          <p className="mt-3 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.08em] text-neutral-400">
+          <p className="mt-3 text-[0.9rem] text-neutral-400">
             {brand ? `${brand} · ` : ""}
             choose a retailer
           </p>
 
-          {description ? (
-            <div className="mt-6 border-t border-neutral-200 pt-6">
-              <DescriptionBody content={description} />
-            </div>
-          ) : null}
-
           {retailers.length > 0 ? (
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3">
+            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
               {retailers.map((retailer) => (
                 <a
                   key={`${retailer.name}-${retailer.url}`}
                   href={retailer.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-black underline underline-offset-4 transition-opacity hover:opacity-60"
+                  className="font-[family-name:var(--font-geist-mono)] text-[0.72rem] font-medium uppercase tracking-[0.1em] text-black underline underline-offset-[6px] transition-opacity hover:opacity-60"
                 >
                   {retailer.name} ↗
                 </a>
               ))}
             </div>
           ) : (
-            <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-neutral-400">
+            <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-neutral-400">
               No retailers listed.
             </p>
           )}

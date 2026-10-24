@@ -32,6 +32,7 @@ type SponsoredPerfumeRow = {
   occasion: string[];
   details: Partial<SponsoredDetails> & Record<string, unknown>;
   status: PerfumeStatus | null;
+  rank: number | null;
   created_at: string;
 };
 
@@ -44,6 +45,7 @@ type FormState = {
   brand: string;
   description: string;
   rating: string;
+  rank: string;
   retailers: Retailer[];
   statusSponsored: boolean;
   statusFeatured: boolean;
@@ -56,6 +58,7 @@ const empty: FormState = {
   brand: "",
   description: "",
   rating: "",
+  rank: "",
   retailers: [{ name: "", url: "" }],
   statusSponsored: false,
   statusFeatured: false,
@@ -118,6 +121,7 @@ function detailsFromRow(row: SponsoredPerfumeRow): FormState {
         : typeof d.rating === "string"
           ? d.rating
           : "",
+    rank: row.rank != null ? String(row.rank) : "",
     retailers: retailers.length > 0 ? retailers : [{ name: "", url: "" }],
     statusSponsored: row.status === "sponsored" || row.status === "both",
     statusFeatured: row.status === "featured" || row.status === "both",
@@ -205,6 +209,11 @@ export default function AdminSponsoredPerfumesPage() {
       setFormError("Rating must be a number between 0 and 10.");
       return;
     }
+    const rank = Number(form.rank);
+    if (!Number.isInteger(rank) || rank < 1) {
+      setFormError("Rank must be a natural number (1, 2, 3, …).");
+      return;
+    }
     const retailers = form.retailers
       .map((r) => ({ name: r.name.trim(), url: r.url.trim() }))
       .filter((r) => r.name || r.url);
@@ -225,6 +234,7 @@ export default function AdminSponsoredPerfumesPage() {
         scent_type: form.scent_type,
         occasion: form.occasion,
         status: statusFromFlags(form.statusSponsored, form.statusFeatured),
+        rank,
         details: {
           brand: form.brand.trim(),
           description: form.description,
@@ -276,7 +286,7 @@ export default function AdminSponsoredPerfumesPage() {
     <div>
       <AdminPageHeader
         title="Sponsored perfumes"
-        subtitle="Name, scent types, occasions, brand, rating, HTML description, retailers, and status."
+        subtitle="Name, rank, scent types, occasions, brand, rating, HTML description, retailers, and status."
         action={
           <button
             type="button"
@@ -300,6 +310,7 @@ export default function AdminSponsoredPerfumesPage() {
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="border-b border-black bg-neutral-50 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.1em]">
               <tr>
+                <th className="px-4 py-3">Rank</th>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Rating</th>
@@ -313,7 +324,7 @@ export default function AdminSponsoredPerfumesPage() {
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-neutral-400">
+                  <td colSpan={9} className="px-4 py-8 text-neutral-400">
                     No sponsored perfumes yet.
                   </td>
                 </tr>
@@ -323,6 +334,9 @@ export default function AdminSponsoredPerfumesPage() {
                     key={row.id}
                     className="border-b border-neutral-200 last:border-0"
                   >
+                    <td className="px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[0.75rem]">
+                      {row.rank ?? "—"}
+                    </td>
                     <td className="px-4 py-3 font-medium">{row.name}</td>
                     <td className="px-4 py-3 text-neutral-600">
                       {typeof row.details?.brand === "string"
@@ -392,6 +406,19 @@ export default function AdminSponsoredPerfumesPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Lumière No. 7"
+                required
+              />
+            </Field>
+
+            <Field label="Rank">
+              <input
+                type="number"
+                min={1}
+                step={1}
+                className={adminInput}
+                value={form.rank}
+                onChange={(e) => setForm({ ...form, rank: e.target.value })}
+                placeholder="1"
                 required
               />
             </Field>

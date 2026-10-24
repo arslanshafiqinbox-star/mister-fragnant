@@ -1,24 +1,17 @@
-import Link from "next/link";
-
 export default function BottomBar() {
-  return (
-    <footer className="border-t border-neutral-200 bg-white">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-5 py-12 sm:flex-row sm:items-end sm:justify-between sm:gap-10 sm:px-8 sm:py-14 lg:px-12">
-        <div>
-          <Link
-            href="/"
-            className="font-[family-name:var(--font-hero-serif)] text-[1.35rem] font-medium italic leading-none tracking-[-0.01em] text-neutral-800 sm:text-[1.5rem]"
-          >
-            Mister Fragrant
-          </Link>
-          <p className="mt-3 max-w-[18rem] text-[0.8rem] leading-relaxed text-neutral-500 sm:text-[0.85rem]">
-            Find your next signature scent. Some links are affiliate links.
-          </p>
-        </div>
+  const year = new Date().getFullYear();
 
-        <p className="font-[family-name:var(--font-geist-sans)] text-[0.75rem] text-neutral-400 sm:text-[0.8rem]">
-          © {new Date().getFullYear()} — Vol. 01
-        </p>
+  return (
+    <footer className="border-t border-neutral-200 bg-[#f7f7f5]">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-3 px-5 py-6 text-center font-[family-name:var(--font-geist-mono)] text-[0.58rem] font-medium uppercase tracking-[0.14em] text-neutral-400 sm:flex-row sm:justify-between sm:gap-6 sm:px-8 sm:py-7 sm:text-left lg:px-12">
+        <p>© {year} Mister Fragrant</p>
+        <a
+          href="mailto:hello@misterfragrantreviews.com"
+          className="normal-case tracking-normal text-neutral-500 hover:text-black"
+        >
+          hello@misterfragrantreviews.com
+        </a>
+        <p className="sm:text-right">Some links are affiliate links</p>
       </div>
     </footer>
   );

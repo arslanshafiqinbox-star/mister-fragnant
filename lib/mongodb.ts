@@ -373,6 +373,8 @@ export type SponsoredPerfumeDoc = {
   occasion: import("mongodb").ObjectId[];
   details: SponsoredPerfumeDetails;
   status: SponsoredPerfumeStatus | null;
+  /** Display order; 1 is first. */
+  rank?: number;
   created_at: Date;
   updated_at: Date;
 };
