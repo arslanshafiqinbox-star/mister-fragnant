@@ -454,6 +454,22 @@ export async function getFilmsCollection(): Promise<Collection<FilmDoc>> {
   return db.collection<FilmDoc>("films");
 }
 
+export type ContactMessageDoc = {
+  _id?: import("mongodb").ObjectId;
+  name: string;
+  email: string;
+  topic?: string;
+  message: string;
+  created_at: Date;
+};
+
+export async function getContactMessagesCollection(): Promise<
+  Collection<ContactMessageDoc>
+> {
+  const db = await getDb();
+  return db.collection<ContactMessageDoc>("contact_messages");
+}
+
 export type NewsletterEmailDoc = {
   _id?: import("mongodb").ObjectId;
   email: string;

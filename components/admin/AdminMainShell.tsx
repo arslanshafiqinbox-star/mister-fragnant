@@ -20,6 +20,7 @@ const navLinks = [
   { href: "/admin/main/films", label: "Films" },
   { href: "/admin/main/alternatives", label: "Alternatives" },
   { href: "/admin/main/newsletter-emails", label: "Newsletter" },
+  { href: "/admin/main/contact", label: "Contact" },
 ];
 
 export default function AdminMainShell({

@@ -12,21 +12,6 @@ type ListResponse = {
   message?: string;
 };
 
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 export default function SponsoredFive() {
   const [rows, setRows] = useState<SponsoredRow[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -58,21 +43,14 @@ export default function SponsoredFive() {
 
   if (rows.length === 0) return null;
 
-  const now = new Date();
-  const period = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`.toUpperCase();
   const openItem = rows.find((row) => row.id === openId) ?? null;
 
   return (
     <section className="bg-white px-5 pb-12 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(1.85rem,4vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
-            Mister Fragrant&apos;s Five
-          </h2>
-          <span className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.14em] text-neutral-400">
-            {period}
-          </span>
-        </div>
+        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(1.85rem,4vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+          Mister Fragrant&apos;s Five
+        </h2>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {rows.map((item, index) => {
@@ -82,8 +60,7 @@ export default function SponsoredFive() {
                 ? item.details.rating
                 : null;
             const status = item.status ?? null;
-            const showSponsored =
-              status === "sponsored" || status === "both" || status == null;
+            const showAd = status === "sponsored" || status === "both";
             const showFeatured = status === "featured" || status === "both";
             const rank = item.rank ?? index + 1;
             const ratingLabel =
@@ -100,13 +77,13 @@ export default function SponsoredFive() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap gap-1.5">
-                    {showSponsored ? (
+                    {showAd ? (
                       <span className="inline-flex bg-yellow-400 px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.1em] text-black">
-                        Sponsored
+                        Ad
                       </span>
                     ) : null}
                     {showFeatured ? (
-                      <span className="inline-flex bg-[#98FF98] px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.1em] text-black">
+                      <span className="inline-flex bg-black px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.55rem] font-medium uppercase tracking-[0.1em] text-white">
                         Featured
                       </span>
                     ) : null}

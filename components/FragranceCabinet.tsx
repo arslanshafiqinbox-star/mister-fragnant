@@ -37,61 +37,6 @@ type ListResponse<T> = {
 
 const ALL = "all";
 
-function EmptyBottle() {
-  return (
-    <svg
-      viewBox="0 0 90 140"
-      className="h-40 w-[6.5rem] rotate-[18deg]"
-      aria-hidden
-    >
-      <rect
-        x="34"
-        y="8"
-        width="22"
-        height="14"
-        rx="2"
-        fill="#F5C400"
-        stroke="#111"
-        strokeWidth="3"
-      />
-      <rect
-        x="38"
-        y="22"
-        width="14"
-        height="8"
-        fill="#F5C400"
-        stroke="#111"
-        strokeWidth="3"
-      />
-      <path
-        d="M24 32H66L70 120C70 128 64 134 56 134H34C26 134 20 128 20 120L24 32Z"
-        fill="#F5C400"
-        stroke="#111"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="34"
-        y="58"
-        width="22"
-        height="16"
-        fill="#fff"
-        stroke="#111"
-        strokeWidth="2.6"
-      />
-      <line
-        x1="38"
-        y1="66"
-        x2="52"
-        y2="66"
-        stroke="#111"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function FilterChip({
   label,
   active,
@@ -517,13 +462,11 @@ export default function FragranceCabinet() {
                   />
                 ) : (
                   <div className="flex h-full min-h-0 flex-col items-center justify-center overflow-y-auto px-6 text-center">
-                    <EmptyBottle />
-                    <h3 className="mt-8 font-[family-name:var(--font-hero-serif)] text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.1] tracking-[-0.02em] text-black">
-                      Pick a fragrance
+                    <h3 className="font-[family-name:var(--font-hero-serif)] text-[clamp(1.65rem,2.8vw,2.15rem)] font-medium leading-[1.15] tracking-[-0.02em] text-black">
+                      Browse reviews. Add your rating.
                     </h3>
-                    <p className="mt-3 max-w-sm text-[0.95rem] leading-relaxed text-neutral-400">
-                      Choose one from the list to read its reviews and add your
-                      own.
+                    <p className="mt-3 text-[0.95rem] leading-relaxed text-neutral-400">
+                      Pick a fragrance to get started.
                     </p>
                   </div>
                 )}

@@ -13,7 +13,7 @@ import BottomBar from "@/components/BottomBar";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="flex min-h-dvh flex-1 flex-col bg-white">
       <TopBar />
       <Hero />
       <SponsoredFive />
