@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Libre_Bodoni } from "next/font/google";
+import { Geist, Geist_Mono, Libre_Bodoni, Pacifico } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +18,12 @@ const heroSerif = Libre_Bodoni({
   weight: ["400", "500", "600", "700"],
 });
 
+const logoScript = Pacifico({
+  variable: "--font-logo",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: "Mister Fragrant",
   description: "Stay cool. Smell great.",
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${heroSerif.variable} flex min-h-dvh flex-col antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${heroSerif.variable} ${logoScript.variable} flex min-h-dvh flex-col antialiased`}
       >
         {children}
       </body>

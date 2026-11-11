@@ -10,7 +10,7 @@ const TOPICS = [
 ] as const;
 
 const fieldClass =
-  "w-full border border-black bg-white px-3 py-2.5 text-[0.95rem] text-black outline-none placeholder:text-neutral-400";
+  "w-full border-2 border-black bg-brand-cream px-3 py-2.5 text-[0.95rem] text-black outline-none placeholder:text-neutral-400";
 const labelClass =
   "mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.12em] text-neutral-400";
 
@@ -56,111 +56,116 @@ export default function ContactForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[780px]">
-      <span className="inline-block border border-black px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.14em] text-black">
-        Contact
-      </span>
-      <h1 className="mt-5 font-[family-name:var(--font-hero-serif)] text-[clamp(2.4rem,6vw,4.15rem)] font-medium leading-[1.02] tracking-[-0.03em] text-black">
-        Get in touch.
-      </h1>
-      <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-neutral-500">
-        Questions, review requests, partnerships or a fragrance you think we
-        should try. Send a message and we&apos;ll get back to you.
-      </p>
-
-      {success ? (
-        <div className="mt-10 border-2 border-black bg-white px-6 py-8 shadow-[6px_6px_0_#000]">
-          <span className="inline-block border-2 border-black bg-black px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.12em] text-white">
-            Sent
+    <>
+      <section className="bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+        <div className="mx-auto flex w-full max-w-[780px] flex-col items-start">
+          <span className="inline-block bg-black px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.14em] text-white">
+            Contact
           </span>
-          <p className="mt-4 font-[family-name:var(--font-hero-serif)] text-[1.5rem] font-medium tracking-[-0.01em] text-black">
-            Thanks — we&apos;ll get back to you.
+          <h1 className="five-title relative z-10 mt-5 ml-1 inline-block cursor-default whitespace-nowrap border-[3px] border-black bg-brand-cream px-6 py-3.5 font-[family-name:var(--font-hero-serif)] text-[clamp(2.2rem,6.5vw,3.75rem)] font-semibold leading-none tracking-[-0.03em] text-black shadow-[6px_6px_0_#000] sm:ml-3 sm:px-8 sm:py-4">
+            Get in touch.
+          </h1>
+          <p className="mt-8 max-w-xl text-[1rem] font-medium leading-relaxed text-brand-cream sm:text-[1.05rem]">
+            Questions, review requests or partnerships. Send a message
+            and we&apos;ll get back to you.
           </p>
-          <button
-            type="button"
-            onClick={() => setSuccess(false)}
-            className="mt-5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-500 underline-offset-2 hover:text-black hover:underline"
-          >
-            Send another message
-          </button>
         </div>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="mt-10 border-2 border-black bg-white p-5 shadow-[6px_6px_0_#000] sm:p-8"
-        >
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <label className="block">
-              <span className={labelClass}>Name</span>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value.slice(0, 120))}
-                required
-                autoComplete="name"
-                className={fieldClass}
-              />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                placeholder="you@email.com"
-                className={fieldClass}
-              />
-            </label>
-          </div>
+      </section>
 
-          <label className="mt-5 block">
-            <span className={labelClass}>Topic</span>
-            <select
-              value={topic}
-              onChange={(e) =>
-                setTopic(e.target.value as (typeof TOPICS)[number])
-              }
-              className={`${fieldClass} appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23000" d="M1 1l5 5 5-5"/></svg>')] bg-[length:12px] bg-[right_12px_center] bg-no-repeat pr-10`}
-            >
-              {TOPICS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
+      <section className="border-t-2 border-black bg-brand-cream px-5 py-12 sm:px-8 sm:py-14 lg:px-12">
+        <div className="mx-auto w-full max-w-[780px]">
+          {success ? (
+            <div>
+              <span className="inline-block bg-black px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.12em] text-white">
+                Sent
+              </span>
+              <p className="mt-4 font-[family-name:var(--font-hero-serif)] text-[1.5rem] font-medium tracking-[-0.01em] text-black">
+                Thanks — we&apos;ll get back to you.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSuccess(false)}
+                className="mt-5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-500 underline-offset-2 hover:text-black hover:underline"
+              >
+                Send another message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <label className="block">
+                  <span className={labelClass}>Name</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value.slice(0, 120))}
+                    required
+                    autoComplete="name"
+                    className={fieldClass}
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Email</span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    placeholder="you@email.com"
+                    className={fieldClass}
+                  />
+                </label>
+              </div>
 
-          <label className="mt-5 block">
-            <span className={labelClass}>Message</span>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
-              required
-              rows={7}
-              className={`${fieldClass} resize-y`}
-            />
-            <span className="mt-1.5 block text-right font-[family-name:var(--font-geist-mono)] text-[0.6rem] text-neutral-400">
-              {message.length} / 1000
-            </span>
-          </label>
+              <label className="mt-5 block">
+                <span className={labelClass}>Topic</span>
+                <select
+                  value={topic}
+                  onChange={(e) =>
+                    setTopic(e.target.value as (typeof TOPICS)[number])
+                  }
+                  className={`${fieldClass} appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23000" d="M1 1l5 5 5-5"/></svg>')] bg-[length:12px] bg-[right_12px_center] bg-no-repeat pr-10`}
+                >
+                  {TOPICS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 inline-flex items-center justify-center border-2 border-black bg-white px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.68rem] font-medium uppercase tracking-[0.12em] text-black shadow-[4px_4px_0_#000] transition-[transform,box-shadow] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0_#000]"
-          >
-            {submitting ? "Sending…" : "Send message →"}
-          </button>
+              <label className="mt-5 block">
+                <span className={labelClass}>Message</span>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
+                  required
+                  rows={7}
+                  className={`${fieldClass} resize-y`}
+                />
+                <span className="mt-1.5 block text-right font-[family-name:var(--font-geist-mono)] text-[0.6rem] text-neutral-400">
+                  {message.length} / 1000
+                </span>
+              </label>
 
-          {error ? (
-            <p className="mt-4 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
-              {error}
-            </p>
-          ) : null}
-        </form>
-      )}
-    </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="mt-2 inline-flex items-center justify-center border-2 border-black bg-brand-blue px-6 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.68rem] font-medium uppercase tracking-[0.12em] text-white shadow-[4px_4px_0_#000] transition-[transform,box-shadow] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0_#000]"
+              >
+                {submitting ? "Sending…" : "Send message →"}
+              </button>
+
+              {error ? (
+                <p className="mt-4 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
+                  {error}
+                </p>
+              ) : null}
+            </form>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

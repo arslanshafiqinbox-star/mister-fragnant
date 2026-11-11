@@ -44,7 +44,7 @@ function BottleRow({ stripId }: { stripId: string }) {
 export default function FragranceStrip() {
   return (
     <section
-      className="w-full overflow-hidden border-y border-[#3a3a3a] bg-white py-4 sm:py-5"
+      className="w-full overflow-hidden border-y-2 border-black bg-brand-cream py-4 sm:py-5"
       aria-label="Fragrance bottles"
     >
       <div className="fragrance-strip-viewport">

@@ -64,7 +64,7 @@ export default function AdminMainShell({
           <div className="flex items-center gap-4">
             <Link
               href="/admin/main"
-              className="font-[family-name:var(--font-hero-serif)] text-lg italic text-black"
+              className="font-[family-name:var(--font-logo)] text-[1.35rem] leading-none text-black"
             >
               Mister Fragrant
             </Link>

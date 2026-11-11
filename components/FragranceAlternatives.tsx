@@ -117,8 +117,8 @@ function AlternativeModal({
       />
 
       <div className="relative z-10 w-full max-w-3xl">
-        <article className="max-h-[85vh] overflow-y-auto border-2 border-black bg-white p-5 shadow-[6px_6px_0_#000] sm:p-8">
-          <span className="inline-block border-2 border-black bg-white px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
+        <article className="max-h-[85vh] overflow-y-auto border-[3px] border-black bg-brand-cream p-5 shadow-[6px_6px_0_#000] sm:p-8">
+          <span className="inline-block border-2 border-black bg-brand-red px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
             Closeness: {closeness}
           </span>
 
@@ -281,12 +281,12 @@ export default function FragranceAlternatives() {
   );
 
   return (
-    <section id="alternatives" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+    <section id="alternatives" className="scroll-mt-[4.25rem] bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+        <h2 className="five-title relative z-10 mb-4 ml-2 inline-block cursor-default border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-hero-serif)] text-[1.45rem] font-semibold leading-none tracking-[-0.02em] text-black shadow-[5px_5px_0_#000] sm:mb-5 sm:px-6 sm:text-[1.85rem]">
           Mister Fragrant&apos;s Alternatives
         </h2>
-        <p className="mt-4 max-w-3xl text-[0.95rem] leading-relaxed text-neutral-500">
+        <p className="mt-1 max-w-3xl text-[0.85rem] italic leading-relaxed text-brand-cream/80 sm:text-[0.9rem]">
           Closeness scores are editorial opinion, based on wearing both, not
           laboratory comparisons or claims of identical formulation.
         </p>
@@ -306,7 +306,7 @@ export default function FragranceAlternatives() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by scent name or brand"
-              className="w-full border-2 border-black bg-white py-2 pl-10 pr-3 text-[0.9rem] text-black outline-none placeholder:text-neutral-400"
+              className="w-full border-2 border-black bg-brand-cream py-2 pl-10 pr-3 text-[0.9rem] text-black outline-none placeholder:text-neutral-400"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -314,7 +314,9 @@ export default function FragranceAlternatives() {
               type="button"
               onClick={() => setSortMode("az")}
               className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
-                sortMode === "az" ? "bg-black text-white" : "bg-white text-black"
+                sortMode === "az"
+                  ? "bg-brand-red text-black"
+                  : "bg-brand-cream text-black"
               }`}
             >
               A–Z
@@ -324,11 +326,11 @@ export default function FragranceAlternatives() {
               onClick={() => setSortMode("rated")}
               className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
                 sortMode === "rated"
-                  ? "bg-black text-white"
-                  : "bg-white text-black"
+                  ? "bg-brand-red text-black"
+                  : "bg-brand-cream text-black"
               }`}
             >
-              Top rated
+              Closest match
             </button>
           </div>
         </div>
@@ -340,19 +342,19 @@ export default function FragranceAlternatives() {
         ) : null}
 
         {loading ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             Loading alternatives…
           </p>
         ) : null}
 
         {!loading && !error && filtered.length === 0 ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             No alternatives match this search.
           </p>
         ) : null}
 
         {!loading && filtered.length > 0 ? (
-          <div className="mt-8 max-h-[min(32rem,62vh)] overflow-y-auto border-t border-black">
+          <div className="mt-6 max-h-[min(32rem,62vh)] overflow-y-auto border-[3px] border-black bg-brand-cream">
             {filtered.map((row) => {
               const pair = row.comparison?.comparison;
               const f1 = pair?.fragrance1;
@@ -364,7 +366,7 @@ export default function FragranceAlternatives() {
                   key={row.id}
                   type="button"
                   onClick={() => setOpenId(row.id)}
-                  className="group flex w-full flex-col gap-3 border-b border-black py-5 text-left transition-colors hover:bg-[#fafafa] sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-6"
+                  className="group flex w-full flex-col gap-3 border-b border-black/20 px-5 py-5 text-left last:border-b-0 transition-colors hover:bg-white sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-7 sm:py-6"
                 >
                   <div className="min-w-0">
                     <h3 className="font-[family-name:var(--font-hero-serif)] text-[1.15rem] font-medium leading-[1.2] tracking-[-0.01em] text-black transition-transform duration-200 group-hover:translate-x-1 sm:text-[1.35rem]">
@@ -379,9 +381,8 @@ export default function FragranceAlternatives() {
                     <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
                       {formatPrice(f2?.price)}
                     </span>
-                    <span className="mb-0.5 mr-0.5 shrink-0 border-2 border-black bg-white px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium text-black shadow-[3px_3px_0_#000]">
-                      {closeness}{" "}
-                      <span className="font-normal text-neutral-500">close</span>
+                    <span className="mb-0.5 mr-0.5 shrink-0 border-2 border-black bg-brand-red px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium text-black shadow-[2px_2px_0_#000]">
+                      {closeness} close
                     </span>
                   </div>
                 </button>

@@ -55,13 +55,13 @@ function formatDate(iso: string) {
 function SponsoredTag({ size = "md" }: { size?: "sm" | "md" }) {
   return (
     <span
-      className={`inline-block bg-yellow-400 font-[family-name:var(--font-geist-mono)]  uppercase tracking-[0.08em] text-neutral-500 ${
+      className={`inline-block bg-brand-yellow font-[family-name:var(--font-geist-mono)] font-medium uppercase tracking-[0.08em] text-black ${
         size === "sm"
-          ? "px-2 py-0.5 text-[0.55rem]"
+          ? "px-1.5 py-0.5 text-[0.55rem]"
           : "px-2.5 py-1 text-[0.65rem] shadow-[2px_2px_0_#000]"
       }`}
     >
-      Sponsored
+      AD
     </span>
   );
 }
@@ -127,7 +127,7 @@ function BlogPopup({
         onClick={onClose}
       />
 
-      <article className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden border border-black bg-white shadow-[5px_5px_0_#000]">
+      <article className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden border-[3px] border-black bg-brand-cream shadow-[5px_5px_0_#000]">
         <button
           type="button"
           onClick={onClose}
@@ -216,9 +216,9 @@ export default function FragranceNotes() {
   );
 
   return (
-    <section id="notes" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+    <section id="notes" className="scroll-mt-[4.25rem] bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+        <h2 className="five-title relative z-10 mb-4 ml-2 inline-block cursor-default border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-hero-serif)] text-[1.45rem] font-semibold leading-none tracking-[-0.02em] text-black shadow-[5px_5px_0_#000] sm:mb-5 sm:px-6 sm:text-[1.85rem]">
           Mister Fragrant&apos;s Notes
         </h2>
 
@@ -229,55 +229,66 @@ export default function FragranceNotes() {
         ) : null}
 
         {loading ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             Loading notes…
           </p>
         ) : null}
 
         {!loading && !error && posts.length === 0 ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             No notes yet.
           </p>
         ) : null}
 
         {!loading && posts.length > 0 ? (
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {posts.map((post) => (
-              <button
-                key={post.id}
-                type="button"
-                onClick={() => setOpenId(post.id)}
-                className="group flex h-full flex-col border border-black bg-white p-5 text-left shadow-[3px_3px_0_#000] transition-colors hover:bg-[#f7f7f5] sm:p-6"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  {post.sponsored ? (
-                    <SponsoredTag size="sm" />
-                  ) : (
-                    <span className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
-                      {post.provider}
-                    </span>
-                  )}
-                  <time
-                    dateTime={post.created_at}
-                    className="shrink-0 text-[0.7rem] text-neutral-400"
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post, index) => {
+              const featured = index === 0 && posts.length > 1;
+              return (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setOpenId(post.id)}
+                  className={`group flex h-full flex-col border-[3px] border-black bg-brand-cream p-5 text-left shadow-[4px_4px_0_#000] transition-colors hover:bg-white sm:p-6 ${
+                    featured ? "lg:col-span-2 lg:p-8" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    {post.sponsored ? (
+                      <SponsoredTag size="sm" />
+                    ) : (
+                      <span className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-400">
+                        {post.provider}
+                      </span>
+                    )}
+                    <time
+                      dateTime={post.created_at}
+                      className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400"
+                    >
+                      {formatDate(post.created_at)}
+                    </time>
+                  </div>
+
+                  <h3
+                    className={`mt-5 font-[family-name:var(--font-hero-serif)] font-medium leading-[1.15] tracking-[-0.02em] text-black transition-transform duration-200 group-hover:translate-x-1 ${
+                      featured
+                        ? "text-[1.55rem] sm:text-[1.85rem]"
+                        : "text-[1.25rem] sm:text-[1.35rem]"
+                    }`}
                   >
-                    {formatDate(post.created_at)}
-                  </time>
-                </div>
+                    {post.title}
+                  </h3>
 
-                <h3 className="mt-5 font-[family-name:var(--font-hero-serif)] text-[1.25rem] font-medium leading-[1.2] tracking-[-0.01em] text-black transition-transform duration-200 group-hover:translate-x-1 sm:text-[1.35rem]">
-                  {post.title}
-                </h3>
+                  <p className="mt-3 flex-1 text-[0.85rem] leading-relaxed text-neutral-500">
+                    {excerpt(post.description, featured ? 180 : 140)}
+                  </p>
 
-                <p className="mt-3 flex-1 text-[0.8rem] leading-relaxed text-neutral-500">
-                  {excerpt(post.description)}
-                </p>
-
-                <span className="mt-6 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-500 transition-colors group-hover:text-black">
-                  Read the post →
-                </span>
-              </button>
-            ))}
+                  <span className="mt-6 font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-neutral-500 transition-colors group-hover:text-black">
+                    Read the post →
+                  </span>
+                </button>
+              );
+            })}
           </div>
         ) : null}
       </div>

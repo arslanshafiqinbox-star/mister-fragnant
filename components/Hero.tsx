@@ -34,11 +34,10 @@
 
 export default function Hero() {
   return (
-    <section className="bg-white px-5 pb-16 pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pb-20 lg:pt-10">
+    <section className="bg-brand-blue px-5 pb-10 pt-10 sm:px-8 sm:pt-14 lg:px-12 lg:pb-12 lg:pt-16">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h1 className="font-[family-name:var(--font-hero-serif)] text-[clamp(3.85rem,7.2vw,7.75rem)] font-medium leading-[0.95] tracking-[-0.03em] text-black">
-          <span className="block">Stay cool.</span>
-          <span className="block">Smell great.</span>
+        <h1 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2.6rem,7vw,6.4rem)] font-medium leading-[0.95] tracking-[-0.03em] text-brand-cream">
+          Stay cool. Smell great.
         </h1>
 
         {/* <div className="flex items-start justify-between gap-8">

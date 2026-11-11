@@ -4,11 +4,11 @@ import BottomBar from "@/components/BottomBar";
 
 export default function ContactPage() {
   return (
-    <main className="flex min-h-dvh flex-1 flex-col bg-white">
+    <main className="flex min-h-dvh flex-1 flex-col bg-brand-cream">
       <TopBar />
-      <section className="flex-1 px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+      <div className="flex-1">
         <ContactForm />
-      </section>
+      </div>
       <BottomBar />
     </main>
   );

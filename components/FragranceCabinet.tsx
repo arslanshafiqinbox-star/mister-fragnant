@@ -52,7 +52,7 @@ function FilterChip({
       onClick={onClick}
       className={`shrink-0 border-2 border-black px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] transition-colors sm:text-[0.7rem] ${
         active
-          ? "bg-black text-white"
+          ? "bg-brand-red text-black"
           : "bg-white text-black hover:bg-neutral-100"
       }`}
     >
@@ -213,13 +213,13 @@ export default function FragranceCabinet() {
   }, [openId]);
 
   return (
-    <section id="cabinet" className="scroll-mt-[4.25rem] bg-white px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+    <section id="cabinet" className="scroll-mt-[4.25rem] bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+        <h2 className="five-title relative z-10 mb-4 ml-2 inline-block cursor-default border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-hero-serif)] text-[1.45rem] font-semibold leading-none tracking-[-0.02em] text-black shadow-[5px_5px_0_#000] sm:mb-5 sm:px-6 sm:text-[1.85rem]">
           Mister Fragrant&apos;s Cabinet
         </h2>
 
-        <div className="mt-10 border-2 border-black bg-white">
+        <div className="border-[3px] border-black bg-brand-cream">
           <div
             className={`flex-col gap-3 border-b-2 border-black px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-5 ${
               openId ? "hidden lg:flex" : "flex"
@@ -247,7 +247,7 @@ export default function FragranceCabinet() {
                 type="button"
                 onClick={() => setSortMode("az")}
                 className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
-                  sortMode === "az" ? "bg-black text-white" : "bg-white text-black"
+                  sortMode === "az" ? "bg-brand-red text-black" : "bg-white text-black"
                 }`}
               >
                 A–Z
@@ -257,7 +257,7 @@ export default function FragranceCabinet() {
                 onClick={() => setSortMode("rated")}
                 className={`border-2 border-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.08em] ${
                   sortMode === "rated"
-                    ? "bg-black text-white"
+                    ? "bg-brand-red text-black"
                     : "bg-white text-black"
                 }`}
               >
@@ -407,8 +407,8 @@ export default function FragranceCabinet() {
                           onClick={() => setOpenId(fragrance.id)}
                           className={`flex w-full items-center justify-between gap-4 border-t px-5 py-4 text-left transition-colors ${
                             active
-                              ? "border-black bg-black text-white"
-                              : "border-neutral-200 bg-white text-black hover:bg-[#f7f7f5]"
+                              ? "border-black bg-white text-black"
+                              : "border-neutral-200 bg-brand-cream text-black hover:bg-white"
                           }`}
                         >
                           <span className="min-w-0">
@@ -423,13 +423,7 @@ export default function FragranceCabinet() {
                               {fragrance.brand}
                             </span>
                           </span>
-                          <span
-                            className={`mb-0.5 mr-0.5 shrink-0 border-2 px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.8rem] leading-none ${
-                              active
-                                ? "border-white text-white shadow-[2px_2px_0_#fff]"
-                                : "border-black bg-white text-black shadow-[2px_2px_0_#000]"
-                            }`}
-                          >
+                          <span className="mb-0.5 mr-0.5 shrink-0 border-2 border-black bg-brand-red px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.8rem] leading-none text-black shadow-[2px_2px_0_#000]">
                             {fragrance.average_rating == null
                               ? "—"
                               : fragrance.average_rating.toFixed(1)}

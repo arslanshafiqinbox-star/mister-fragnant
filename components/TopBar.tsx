@@ -62,11 +62,11 @@ export default function TopBar() {
   function linkClass(id: string) {
     const active = pathname === "/" && activeId === id;
     return [
-      "nav-underline relative pb-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.14em] text-[#3a3a3a] transition-colors lg:text-[0.75rem]",
-      "after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-black after:transition-transform after:duration-300 after:ease-out after:content-['']",
+      "nav-underline relative pb-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.14em] text-brand-cream/80 transition-colors lg:text-[0.75rem]",
+      "after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:bg-brand-cream after:transition-transform after:duration-300 after:ease-out after:content-['']",
       active
-        ? "text-black after:scale-x-100"
-        : "after:scale-x-0 hover:text-black hover:after:scale-x-100",
+        ? "text-brand-cream after:scale-x-100"
+        : "after:scale-x-0 hover:text-brand-cream hover:after:scale-x-100",
     ].join(" ");
   }
 
@@ -88,11 +88,11 @@ export default function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b-2 bg-white">
+    <header className="sticky top-0 z-40 w-full border-b-2 border-black bg-brand-blue">
       <div className="mx-auto flex h-[4.25rem] max-w-[1400px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
         <Link
           href="/"
-          className="shrink-0 text-sm font-medium uppercase tracking-[0.12em] text-[#3a3a3a] sm:text-xs"
+          className="shrink-0 font-[family-name:var(--font-logo)] text-[1.35rem] leading-none text-brand-cream sm:text-[1.5rem]"
         >
           Mister Fragrant
         </Link>
@@ -113,7 +113,7 @@ export default function TopBar() {
 
         <button
           type="button"
-          className="flex h-9 w-9 shrink-0 items-center justify-center text-[#3a3a3a] md:hidden"
+          className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-cream md:hidden"
           aria-label={isOpen ? "Close menu" : "Open menu"}
           onClick={() => setIsOpen((open) => !open)}
         >
@@ -122,7 +122,7 @@ export default function TopBar() {
       </div>
 
       {isOpen ? (
-        <nav className="flex flex-col gap-4 border-t border-[#3a3a3a] px-5 py-5 md:hidden">
+        <nav className="flex flex-col gap-4 border-t border-black bg-brand-blue px-5 py-5 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.id}

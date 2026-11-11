@@ -376,9 +376,9 @@ export default function FragranceFilms() {
   );
 
   return (
-    <section id="films" className="scroll-mt-[4.25rem] bg-[#fafafa] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+    <section id="films" className="scroll-mt-[4.25rem] bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-brand-cream">
           Mister Fragrant&apos;s Films
         </h2>
 
@@ -425,7 +425,7 @@ export default function FragranceFilms() {
                     key={film.id}
                     type="button"
                     onClick={() => setOpenId(film.id)}
-                    className="group flex h-full flex-col border border-black bg-white p-5 text-left shadow-[3px_3px_0_#000] transition-colors hover:bg-white sm:p-6"
+                    className="group flex h-full flex-col border border-black bg-brand-cream p-5 text-left shadow-[3px_3px_0_#000] transition-colors hover:bg-white sm:p-6"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
