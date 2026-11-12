@@ -219,7 +219,7 @@ export default function FragranceCabinet() {
           Mister Fragrant&apos;s Cabinet
         </h2>
 
-        <div className="border-[3px] border-black bg-brand-cream">
+        <div className="border-[3px] border-black bg-brand-cream shadow-[6px_6px_0_#000]">
           <div
             className={`flex-col gap-3 border-b-2 border-black px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-5 ${
               openId ? "hidden lg:flex" : "flex"
@@ -380,7 +380,7 @@ export default function FragranceCabinet() {
             </p>
           ) : (
             <div
-              className={`grid lg:h-[min(36rem,70vh)] lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] ${
+              className={`grid lg:h-[min(38rem,72vh)] lg:grid-cols-[minmax(16.5rem,19.5rem)_minmax(0,1fr)] ${
                 openId ? "h-auto" : "h-[min(32rem,62vh)]"
               }`}
             >
@@ -405,25 +405,27 @@ export default function FragranceCabinet() {
                           key={fragrance.id}
                           type="button"
                           onClick={() => setOpenId(fragrance.id)}
-                          className={`flex w-full items-center justify-between gap-4 border-t px-5 py-4 text-left transition-colors ${
+                          className={`flex w-full items-center justify-between gap-3 border-t px-4 py-3 text-left transition-colors ${
                             active
-                              ? "border-black bg-white text-black"
-                              : "border-neutral-200 bg-brand-cream text-black hover:bg-white"
+                              ? "border-black bg-black text-white"
+                              : "border-black/10 bg-brand-cream text-black hover:bg-white"
                           }`}
                         >
                           <span className="min-w-0">
-                            <span className="block truncate font-[family-name:var(--font-hero-serif)] text-[1.2rem] font-medium leading-tight tracking-[-0.02em]">
+                            <span className="block truncate font-[family-name:var(--font-hero-serif)] text-[1.05rem] font-medium leading-tight tracking-[-0.02em]">
                               {fragrance.name}
                             </span>
-                            <span
-                              className={`mt-1 block truncate text-[0.8rem] ${
-                                active ? "text-neutral-400" : "text-neutral-400"
-                              }`}
-                            >
+                            <span className="mt-0.5 block truncate text-[0.72rem] text-neutral-400">
                               {fragrance.brand}
                             </span>
                           </span>
-                          <span className="mb-0.5 mr-0.5 shrink-0 border-2 border-black bg-brand-red px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.8rem] leading-none text-black shadow-[2px_2px_0_#000]">
+                          <span
+                            className={`mb-0.5 mr-0.5 shrink-0 border-2 bg-brand-red px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.72rem] leading-none text-black ${
+                              active
+                                ? "border-white shadow-[2px_2px_0_#fff]"
+                                : "border-black shadow-[2px_2px_0_#000]"
+                            }`}
+                          >
                             {fragrance.average_rating == null
                               ? "—"
                               : fragrance.average_rating.toFixed(1)}

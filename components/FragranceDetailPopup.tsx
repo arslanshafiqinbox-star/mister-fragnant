@@ -53,9 +53,123 @@ type SummaryResponse = {
 
 function Tag({ children }: { children: ReactNode }) {
   return (
-    <span className="border-2 border-black px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.1em] text-black">
+    <span className="border border-black bg-brand-cream px-2.5 py-[5px] font-[family-name:var(--font-geist-mono)] text-[0.58rem] font-medium uppercase tracking-[0.08em] text-black">
       {children}
     </span>
+  );
+}
+
+function ChipRow({
+  label,
+  stacked = false,
+  children,
+}: {
+  label: string;
+  stacked?: boolean;
+  children: ReactNode;
+}) {
+  const labelClass =
+    "font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.14em] text-neutral-400";
+
+  if (stacked) {
+    return (
+      <div>
+        <p className={`${labelClass} mb-2.5`}>{label}</p>
+        <div className="flex flex-wrap gap-2">{children}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <span className={`${labelClass} w-[6.75rem] shrink-0`}>{label}</span>
+      <div className="flex min-w-0 flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function BuyRetailersModal({
+  name,
+  brand,
+  links,
+  onClose,
+}: {
+  name: string;
+  brand: string;
+  links: FragrancePopupLink[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Where to buy ${name}`}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label="Close popup"
+        onClick={onClose}
+      />
+
+      <div className="relative z-10 w-full max-w-4xl">
+        <article className="border-[3px] border-black bg-brand-cream px-7 py-9 shadow-[8px_8px_0_#000] sm:px-12 sm:py-12">
+          <span className="inline-block border-2 border-black bg-brand-cream px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.12em] text-black">
+            Where to buy
+          </span>
+
+          <h2 className="mt-6 font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,4vw,2.85rem)] font-medium leading-[1.08] tracking-[-0.03em] text-black">
+            {name}
+          </h2>
+
+          <p className="mt-3 text-[0.9rem] text-neutral-400">
+            {brand ? `${brand} · ` : ""}
+            choose a retailer
+          </p>
+
+          {links.length > 0 ? (
+            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+              {links.map((link) => {
+                const href = link.link.startsWith("http")
+                  ? link.link
+                  : `https://${link.link}`;
+                return (
+                  <a
+                    key={`${link.name}-${link.link}`}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-[family-name:var(--font-geist-mono)] text-[0.72rem] font-medium uppercase tracking-[0.1em] text-black underline underline-offset-[6px] transition-opacity hover:opacity-60"
+                  >
+                    {link.name} ↗
+                  </a>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-neutral-400">
+              No retailer links yet.
+            </p>
+          )}
+        </article>
+      </div>
+    </div>
   );
 }
 
@@ -455,30 +569,25 @@ export default function FragranceDetailPopup({
   );
 
   if (embedded) {
-    const votesLabel = String(total_votes).padStart(3, "0");
     const actionBtn =
-      "inline-flex items-center gap-2 border border-black bg-white px-5 py-3.5 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black shadow-[4px_4px_0_#000]";
+      "inline-flex items-center border-[3px] border-black bg-brand-cream px-6 py-3.5 font-[family-name:var(--font-geist-mono)] text-[0.68rem] font-medium uppercase tracking-[0.12em] text-black shadow-[4px_4px_0_#000]";
     const actionLink =
-      "font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black underline decoration-neutral-300 underline-offset-[6px]";
+      "font-[family-name:var(--font-geist-mono)] text-[0.62rem] font-medium uppercase tracking-[0.14em] text-black underline decoration-black underline-offset-[5px]";
 
     return (
       <div
-        className={`relative flex min-h-0 flex-col bg-white p-6 sm:p-8 ${
-          panel === "none"
-            ? "h-auto overflow-visible lg:h-full lg:overflow-hidden"
-            : "h-auto overflow-y-auto lg:h-full"
-        }`}
+        className="relative flex h-auto min-h-0 flex-col bg-brand-cream lg:h-full lg:overflow-hidden"
         role="region"
         aria-label={`${title} details`}
       >
         {loading && !row ? (
-          <p className="py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="px-6 py-16 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
             Loading…
           </p>
         ) : null}
 
         {loadError && !row ? (
-          <p className="py-16 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
+          <p className="px-6 py-16 font-[family-name:var(--font-geist-mono)] text-sm text-red-600">
             {loadError}
           </p>
         ) : null}
@@ -488,69 +597,77 @@ export default function FragranceDetailPopup({
             <button
               type="button"
               onClick={onClose}
-              className="mb-6 inline-flex items-center gap-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black lg:hidden"
+              className="mx-6 mt-6 inline-flex items-center gap-2 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black lg:hidden"
             >
               <span aria-hidden>←</span>
               All fragrances
             </button>
-            <div className="flex items-start justify-between gap-6">
-              <div className="min-w-0">
-                <p className="text-[0.85rem] text-neutral-400">{fragrance.brand}</p>
-                <h3 className="mt-1 font-[family-name:var(--font-hero-serif)] text-[clamp(2.4rem,5vw,3.6rem)] font-medium leading-[0.95] tracking-[-0.035em] text-black">
+
+            <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(15.5rem,0.9fr)]">
+              <div className="flex min-h-0 flex-col overflow-y-auto border-b-2 border-black p-6 sm:px-8 sm:py-7 lg:border-b-0">
+                <p className="text-[0.82rem] text-neutral-400">{fragrance.brand}</p>
+                <h3 className="mt-0.5 font-[family-name:var(--font-hero-serif)] text-[clamp(2.35rem,4vw,3.15rem)] font-medium leading-[0.92] tracking-[-0.04em] text-black">
                   {fragrance.name}
                 </h3>
-              </div>
-              <div className="shrink-0 rotate-[8deg] border-2 border-black bg-white px-4 py-3 text-center shadow-[4px_4px_0_#000]">
-                <p className="font-[family-name:var(--font-hero-serif)] leading-none">
-                  <span className="text-[2.15rem] text-black">
-                    {average_rating == null ? "—" : average_rating.toFixed(1)}
-                  </span>
-                  <span className="align-top text-[0.7rem] text-neutral-400">
-                    /10
-                  </span>
-                </p>
-                <p className="mt-1.5 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.14em] text-neutral-400">
-                  {votesLabel} ratings
-                </p>
-              </div>
-            </div>
 
-            <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-              <NoteGroup notes={notes} />
-              <FieldGroup label="Scent types" items={scentTypes} />
-              <FieldGroup label="Occasions" items={occasions} />
-              <FieldGroup label="Gender" items={genders} />
-              <FieldGroup label="Strength" items={strengths} />
-              {approxPrice ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <span className="shrink-0 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.14em] text-neutral-400">
-                    Approx. price
-                  </span>
-                  <Tag>{approxPrice}</Tag>
+                <div className="mt-6 w-fit shrink-0 self-start rotate-[5deg] border-[3px] border-black bg-brand-cream px-5 py-3.5 shadow-[5px_5px_0_#000]">
+                  <p className="flex items-end font-[family-name:var(--font-hero-serif)] leading-none">
+                    <span className="text-[2.85rem] font-medium tracking-[-0.04em] text-brand-red sm:text-[3.15rem]">
+                      {average_rating == null ? "—" : average_rating.toFixed(1)}
+                    </span>
+                    <span className="mb-1 ml-1 text-[0.9rem] text-neutral-400">
+                      /10
+                    </span>
+                  </p>
+                  <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-[0.55rem] uppercase tracking-[0.16em] text-neutral-400">
+                    {total_votes.toLocaleString()} ratings
+                  </p>
                 </div>
-              ) : null}
-            </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-6 border-t border-neutral-200 pt-6">
-              {panel === "buy" ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setPanel("none")}
-                    className={actionBtn}
-                  >
-                    Close where to buy ×
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPanel("review")}
-                    className={actionLink}
-                  >
-                    Write a review +
-                  </button>
-                </>
-              ) : (
-                <>
+                <div className="mt-8 flex flex-col gap-3.5">
+                  {notes.length > 0 ? (
+                    <ChipRow label="Notes" stacked>
+                      {notes.map((note) => (
+                        <Tag key={note}>{note}</Tag>
+                      ))}
+                    </ChipRow>
+                  ) : null}
+                  {scentTypes.length > 0 ? (
+                    <ChipRow label="Scent types">
+                      {scentTypes.map((item) => (
+                        <Tag key={item.id}>{item.name}</Tag>
+                      ))}
+                    </ChipRow>
+                  ) : null}
+                  {occasions.length > 0 ? (
+                    <ChipRow label="Occasions">
+                      {occasions.map((item) => (
+                        <Tag key={item.id}>{item.name}</Tag>
+                      ))}
+                    </ChipRow>
+                  ) : null}
+                  {genders.length > 0 ? (
+                    <ChipRow label="Gender">
+                      {genders.map((item) => (
+                        <Tag key={item.id}>{item.name}</Tag>
+                      ))}
+                    </ChipRow>
+                  ) : null}
+                  {strengths.length > 0 ? (
+                    <ChipRow label="Strength">
+                      {strengths.map((item) => (
+                        <Tag key={item.id}>{item.name}</Tag>
+                      ))}
+                    </ChipRow>
+                  ) : null}
+                  {approxPrice ? (
+                    <ChipRow label="Approx. price">
+                      <Tag>{approxPrice}</Tag>
+                    </ChipRow>
+                  ) : null}
+                </div>
+
+                <div className="mt-auto flex flex-col items-start gap-4 border-t border-neutral-300 pt-8">
                   <button
                     type="button"
                     onClick={() =>
@@ -569,121 +686,81 @@ export default function FragranceDetailPopup({
                   >
                     Where to buy ↗
                   </button>
-                </>
-              )}
-            </div>
-
-            {panel === "review" ? (
-              <form
-                onSubmit={handleSubmit}
-                className="mt-6 border border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-7"
-              >
-                <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.65rem] font-medium tracking-[-0.02em] text-black">
-                  Your review of {fragrance.name}
-                </h4>
-                <div className="mt-6">
-                  <RatingSegments
-                    layout="row"
-                    value={breakdown}
-                    onChange={setBreakdown}
-                  />
                 </div>
-                <label className="mt-6 block font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-400">
-                  Name (optional)
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Shown next to your review"
-                  className="mt-2 w-full border-0 border-b border-black bg-transparent pb-2 text-[0.95rem] text-black outline-none placeholder:text-neutral-400"
-                />
-                <label className="mt-6 block font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-400">
-                  Your review
-                </label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value.slice(0, 400))}
-                  placeholder="What does it smell like? When would you wear it?"
-                  rows={4}
-                  className="mt-2 w-full resize-none border border-black bg-white px-3 py-3 text-[0.9rem] leading-relaxed text-black outline-none placeholder:text-neutral-400"
-                />
-                <p className="mt-1 text-right font-[family-name:var(--font-geist-mono)] text-[0.6rem] text-neutral-400">
-                  {comment.length} / 400
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-4">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="border border-black bg-white px-5 py-3 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-black shadow-[3px_3px_0_#000] disabled:opacity-50"
+
+                {panel === "review" ? (
+                  <form
+                    onSubmit={handleSubmit}
+                    className="mt-8 border-[3px] border-black bg-brand-cream p-6 sm:p-7"
                   >
-                    {submitting ? "Posting…" : "Post review →"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPanel("none")}
-                    className="font-[family-name:var(--font-geist-mono)] text-[0.65rem] uppercase tracking-[0.12em] text-black underline underline-offset-4"
-                  >
-                    Cancel
-                  </button>
-                  {submitMessage ? (
-                    <p className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-500">
-                      {submitMessage}
+                    <h4 className="max-w-[16ch] font-[family-name:var(--font-hero-serif)] text-[1.65rem] font-medium leading-[1.15] tracking-[-0.02em] text-black">
+                      Your review of {fragrance.name}
+                    </h4>
+                    <div className="mt-6">
+                      <RatingSegments
+                        value={breakdown}
+                        onChange={setBreakdown}
+                      />
+                    </div>
+                    <label className="mt-5 block font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-neutral-400">
+                      Name (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Shown next to your review"
+                      className="mt-1 w-full border-0 border-b border-black bg-transparent pb-1.5 font-[family-name:var(--font-hero-serif)] text-[1.05rem] text-black outline-none placeholder:italic placeholder:text-neutral-400"
+                    />
+                    <label className="mt-5 block font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-neutral-400">
+                      Your review
+                    </label>
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value.slice(0, 400))}
+                      placeholder={"What does it smell like? When would you wear it?"}
+                      rows={4}
+                      className="mt-2 w-full resize-y border border-black bg-transparent px-3 py-3 text-[0.9rem] leading-relaxed text-black outline-none placeholder:text-neutral-400"
+                    />
+                    <p className="mt-1.5 text-right font-[family-name:var(--font-geist-mono)] text-[0.58rem] text-neutral-400">
+                      {comment.length} / 400
                     </p>
-                  ) : null}
-                </div>
-              </form>
-            ) : null}
+                    <div className="mt-5 flex flex-wrap items-center gap-5">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[0.68rem] uppercase tracking-[0.1em] text-black disabled:opacity-50"
+                      >
+                        {submitting ? "Posting…" : "Post review →"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPanel("none")}
+                        className="font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.14em] text-black underline underline-offset-4"
+                      >
+                        Cancel
+                      </button>
+                      {submitMessage ? (
+                        <p className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-500">
+                          {submitMessage}
+                        </p>
+                      ) : null}
+                    </div>
+                  </form>
+                ) : null}
 
-            {panel === "buy" ? (
-              <div className="mt-6 border border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-7">
-                <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.65rem] font-medium tracking-[-0.02em] text-black">
-                  Where to buy {fragrance.name}
-                </h4>
-                <p className="mt-3 max-w-lg text-[0.9rem] leading-relaxed text-neutral-500">
-                  You can buy this scent directly through any of the retailers
-                  below.
-                </p>
-                {links.length > 0 ? (
-                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
-                    {links.map((link) => {
-                      const key = `${link.name}-${link.link}`;
-                      const href = link.link.startsWith("http")
-                        ? link.link
-                        : `https://${link.link}`;
-                      return (
-                        <a
-                          key={key}
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.1em] text-black underline underline-offset-4 hover:opacity-60"
-                        >
-                          {link.name}
-                          <span aria-hidden>↗</span>
-                        </a>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-6 font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.08em] text-neutral-400">
-                    No retailer links yet.
-                  </p>
-                )}
               </div>
-            ) : null}
 
-            {panel === "none" ? (
-              <div className="mt-10 flex min-h-0 flex-1 flex-col">
-                <div className="flex shrink-0 items-end justify-between gap-4 border-b border-black pb-2">
-                  <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.7rem] font-medium tracking-[-0.02em] text-black">
+              <div className="flex min-h-0 flex-col border-black p-6 sm:px-8 sm:py-7 lg:border-l-2">
+                <div className="flex shrink-0 items-baseline justify-between gap-4">
+                  <h4 className="font-[family-name:var(--font-hero-serif)] text-[1.85rem] font-medium leading-none tracking-[-0.03em] text-black">
                     Reviews
                   </h4>
-                  <p className="font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.1em] text-neutral-400">
+                  <p className="font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-neutral-400">
                     {reviews.length} written
                   </p>
                 </div>
-                <div className="h-[13.5rem] overflow-y-auto">
+                <div className="mt-8 min-h-0 flex-1 overflow-y-auto max-lg:max-h-[18rem]">
                   {reviews.length === 0 ? (
                     <p className="py-6 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
                       No approved reviews yet.
@@ -692,15 +769,17 @@ export default function FragranceDetailPopup({
                     reviews.map((item, index) => (
                       <div
                         key={`${item.name}-${index}`}
-                        className="border-b border-neutral-200 py-4"
+                        className="py-5 first:pt-0"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <p className="font-medium text-black">{item.name}</p>
-                          <span className="shrink-0 border-2 border-black bg-white px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-black shadow-[2px_2px_0_#000]">
+                          <p className="text-[0.95rem] font-medium text-black">
+                            {item.name}
+                          </p>
+                          <span className="shrink-0 border border-black bg-brand-cream px-2 py-1 font-[family-name:var(--font-geist-mono)] text-[0.65rem] text-black">
                             {item.rating.toFixed(1)}/10
                           </span>
                         </div>
-                        <p className="mt-1.5 text-[0.9rem] leading-relaxed text-neutral-600">
+                        <p className="mt-2 max-w-[28ch] text-[0.88rem] leading-relaxed text-neutral-600">
                           {item.review}
                         </p>
                       </div>
@@ -708,6 +787,15 @@ export default function FragranceDetailPopup({
                   )}
                 </div>
               </div>
+            </div>
+
+            {panel === "buy" ? (
+              <BuyRetailersModal
+                name={fragrance.name}
+                brand={fragrance.brand}
+                links={links}
+                onClose={() => setPanel("none")}
+              />
             ) : null}
           </>
         ) : null}

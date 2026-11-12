@@ -249,7 +249,7 @@ export default function FragranceNotes() {
                   key={post.id}
                   type="button"
                   onClick={() => setOpenId(post.id)}
-                  className={`group flex h-full flex-col border-[3px] border-black bg-brand-cream p-5 text-left shadow-[4px_4px_0_#000] transition-colors hover:bg-white sm:p-6 ${
+                  className={`group relative flex h-full flex-col border-[3px] border-black bg-brand-cream p-5 text-left shadow-[4px_4px_0_#000] transition-[transform,box-shadow,background-color] duration-700 ease-out hover:z-10 hover:bg-white hover:shadow-[6px_6px_0_var(--brand-red)] hover:[transform:perspective(900px)_rotateY(-7deg)_translateY(-6px)] sm:p-6 ${
                     featured ? "lg:col-span-2 lg:p-8" : ""
                   }`}
                 >

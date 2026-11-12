@@ -44,25 +44,23 @@ function SliderRow({
   const current = value ?? 5;
 
   return (
-    <div>
-      <label className="mb-2 block font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em] text-neutral-500">
+    <div className="grid grid-cols-[7.6rem_minmax(0,1fr)_1.1rem] items-center gap-x-3">
+      <label className="font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.1em] text-neutral-500">
         {label}
       </label>
-      <div className="flex items-center gap-3">
-        <input
-          type="range"
-          min={1}
-          max={10}
-          step={1}
-          value={current}
-          onChange={(e) => onChange(Number(e.target.value))}
-          aria-label={label}
-          className="rating-slider min-w-0 flex-1"
-        />
-        <span className="w-4 shrink-0 text-right font-[family-name:var(--font-geist-mono)] text-[0.75rem] text-black">
-          {current}
-        </span>
-      </div>
+      <input
+        type="range"
+        min={1}
+        max={10}
+        step={1}
+        value={current}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={label}
+        className="rating-slider min-w-0 w-full"
+      />
+      <span className="text-right font-[family-name:var(--font-geist-mono)] text-[0.75rem] text-black">
+        {current}
+      </span>
     </div>
   );
 }
@@ -79,12 +77,12 @@ export default function RatingSegments({
   const overall = averageRating(value);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div
         className={
           layout === "row"
-            ? "grid grid-cols-1 gap-6 sm:grid-cols-3"
-            : "space-y-5"
+            ? "grid grid-cols-1 gap-5 sm:grid-cols-3"
+            : "space-y-4"
         }
       >
         {RATING_KEYS.map((row) => (
@@ -98,9 +96,9 @@ export default function RatingSegments({
       </div>
 
       <div className="border-t border-dotted border-neutral-400 pt-3">
-        <p className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] uppercase tracking-[0.1em] text-neutral-500">
+        <p className="font-[family-name:var(--font-geist-mono)] text-[0.62rem] uppercase tracking-[0.1em] text-neutral-500">
           Your overall rating:{" "}
-          <span className="font-medium text-black">
+          <span className="font-semibold text-black">
             {overall == null ? "—" : overall.toFixed(1)}
           </span>
           <span className="text-neutral-400">/10</span>

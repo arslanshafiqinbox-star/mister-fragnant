@@ -79,8 +79,8 @@ export function WhereToBuyModal({
       />
 
       <div className="relative z-10 w-full max-w-5xl">
-        <article className="border-2 border-black bg-white px-6 py-8 shadow-[8px_8px_0_#000] sm:px-10 sm:py-10">
-          <span className="inline-block border-2 border-black bg-white px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black shadow-[3px_3px_0_#000]">
+        <article className="border-[3px] border-black bg-brand-cream px-7 py-9 shadow-[8px_8px_0_#000] sm:px-12 sm:py-12">
+          <span className="inline-block border-2 border-black bg-brand-cream px-2.5 py-1.5 font-[family-name:var(--font-geist-mono)] text-[0.65rem] font-medium uppercase tracking-[0.12em] text-black">
             Where to buy
           </span>
 
