@@ -1,7 +1,7 @@
 import Hero from "@/components/Hero";
 import TopBar from "@/components/TopBar";
 import SponsoredFive from "@/components/SponsoredFive";
-import FragranceStrip from "@/components/FragranceStrip";
+// import FragranceStrip from "@/components/FragranceStrip";
 import FragranceCabinet from "@/components/FragranceCabinet";
 import FragranceFavourites from "@/components/FragranceFavourites";
 import FragranceAlternatives from "@/components/FragranceAlternatives";
@@ -17,7 +17,7 @@ export default function Home() {
       <TopBar />
       <Hero />
       <SponsoredFive />
-      <FragranceStrip />
+      {/* <FragranceStrip /> */}
       <FragranceCabinet />
       {/* <FragranceFavourites /> */}
       <FragranceAlternatives />
