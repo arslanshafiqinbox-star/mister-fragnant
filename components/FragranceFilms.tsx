@@ -177,14 +177,14 @@ function FeaturedCard({
   const truncated = Boolean(snippet && snippet.endsWith("…"));
 
   return (
-    <article className="overflow-hidden border border-black bg-white shadow-[4px_4px_0_#000]">
+    <article className="overflow-hidden border-[3px] border-black bg-brand-cream shadow-[4px_4px_0_#000]">
       <MediaPanel latest={latest} url={details.url} title={film.name} />
 
       <button
         type="button"
         onClick={onOpen}
         aria-haspopup="dialog"
-        className="w-full p-6 text-left transition-colors hover:bg-[#fafafa] sm:p-8"
+        className="w-full p-6 text-left transition-colors hover:bg-white sm:p-8"
       >
         <div className="flex flex-wrap items-center gap-3">
           {latest ? (
@@ -277,7 +277,7 @@ function FilmPopup({
         onClick={onClose}
       />
 
-      <article className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden border border-black bg-white shadow-[5px_5px_0_#000]">
+      <article className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden border-[3px] border-black bg-brand-cream shadow-[5px_5px_0_#000]">
         <button
           type="button"
           onClick={onClose}
@@ -378,7 +378,7 @@ export default function FragranceFilms() {
   return (
     <section id="films" className="scroll-mt-[4.25rem] bg-brand-blue px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h2 className="font-[family-name:var(--font-hero-serif)] text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.02em] text-brand-cream">
+        <h2 className="five-title relative z-10 mb-4 ml-2 inline-block cursor-default border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-hero-serif)] text-[1.45rem] font-semibold leading-none tracking-[-0.02em] text-black shadow-[5px_5px_0_#000] sm:mb-5 sm:px-6 sm:text-[1.85rem]">
           Mister Fragrant&apos;s Films
         </h2>
 
@@ -389,19 +389,19 @@ export default function FragranceFilms() {
         ) : null}
 
         {loading ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             Loading films…
           </p>
         ) : null}
 
         {!loading && !error && films.length === 0 ? (
-          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-neutral-400">
+          <p className="mt-10 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.1em] text-brand-cream/70">
             No films yet.
           </p>
         ) : null}
 
         {!loading && featured ? (
-          <div className="mt-12">
+          <div className="mt-6">
             <FeaturedCard
               film={featured}
               latest
@@ -412,11 +412,11 @@ export default function FragranceFilms() {
 
         {!loading && archive.length > 0 ? (
           <div className="mt-16">
-            <h3 className="inline-block border-b border-black pb-1 font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.14em] text-black">
+            <h3 className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] font-medium uppercase tracking-[0.14em] text-brand-cream/80">
               Archive
             </h3>
 
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {archive.map((film) => {
                 const details = film.details ?? {};
                 const description = details.description ?? "";
@@ -425,7 +425,7 @@ export default function FragranceFilms() {
                     key={film.id}
                     type="button"
                     onClick={() => setOpenId(film.id)}
-                    className="group flex h-full flex-col border border-black bg-brand-cream p-5 text-left shadow-[3px_3px_0_#000] transition-colors hover:bg-white sm:p-6"
+                    className="group relative flex h-full flex-col border-[3px] border-black bg-brand-cream p-5 text-left shadow-[4px_4px_0_#000] transition-[transform,box-shadow,background-color] duration-700 ease-out hover:z-10 hover:bg-white hover:shadow-[6px_6px_0_var(--brand-red)] hover:[transform:perspective(900px)_rotateY(-7deg)_translateY(-6px)] sm:p-6"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <span className="font-[family-name:var(--font-geist-mono)] text-[0.7rem] text-neutral-400">
