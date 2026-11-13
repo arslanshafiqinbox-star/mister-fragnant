@@ -65,7 +65,7 @@ body {
 
 .five-title {
   transform: rotate(-2.5deg);
-  transform-origin: 50% 50%;
+  transform-origin: 0 0;
 }
 
 .five-title:hover {

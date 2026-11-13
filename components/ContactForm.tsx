@@ -62,7 +62,7 @@ export default function ContactForm() {
           <span className="inline-block bg-black px-2.5 py-1 font-[family-name:var(--font-geist-mono)] text-[0.6rem] font-medium uppercase tracking-[0.14em] text-white">
             Contact
           </span>
-          <h1 className="five-title relative z-10 mt-5 ml-1 inline-block cursor-default whitespace-nowrap border-[3px] border-black bg-brand-cream px-6 py-3.5 font-[family-name:var(--font-hero-serif)] text-[clamp(2.2rem,6.5vw,3.75rem)] font-semibold leading-none tracking-[-0.03em] text-black shadow-[6px_6px_0_#000] sm:ml-3 sm:px-8 sm:py-4">
+          <h1 className="five-title relative z-10 mt-5 inline-block cursor-default whitespace-nowrap border-[3px] border-black bg-brand-cream px-6 py-3.5 font-[family-name:var(--font-hero-serif)] text-[clamp(2.2rem,6.5vw,3.75rem)] font-semibold leading-none tracking-[-0.03em] text-black shadow-[6px_6px_0_#000] sm:px-8 sm:py-4">
             Get in touch.
           </h1>
           <p className="mt-8 max-w-xl text-[1rem] font-medium leading-relaxed text-brand-cream sm:text-[1.05rem]">

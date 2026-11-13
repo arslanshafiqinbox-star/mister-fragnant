@@ -64,9 +64,9 @@ export default function AdminMainShell({
           <div className="flex items-center gap-4">
             <Link
               href="/admin/main"
-              className="font-[family-name:var(--font-logo)] text-[1.35rem] leading-none text-black"
+              className="-ml-[0.2em] font-[family-name:var(--font-logo)] text-[1.35rem] leading-none text-black"
             >
-              Mister Fragrant
+              Mister Fragrant Reviews
             </Link>
             <span className="border border-black px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[0.6rem] uppercase tracking-[0.12em]">
               Admin

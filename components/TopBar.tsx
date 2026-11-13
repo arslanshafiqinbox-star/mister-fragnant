@@ -92,9 +92,9 @@ export default function TopBar() {
       <div className="mx-auto flex h-[4.25rem] max-w-[1400px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
         <Link
           href="/"
-          className="shrink-0 font-[family-name:var(--font-logo)] text-[1.35rem] leading-none text-brand-cream sm:text-[1.5rem]"
+          className="-ml-1 shrink-0 whitespace-nowrap font-[family-name:var(--font-logo)] text-[1.15rem] leading-none text-brand-cream sm:text-[1.4rem]"
         >
-          Mister Fragrant
+          Mister Fragrant Reviews
         </Link>
 
         <nav className="hidden items-center gap-5 md:flex lg:gap-7">

@@ -25,7 +25,7 @@ const logoScript = Pacifico({
 });
 
 export const metadata: Metadata = {
-  title: "Mister Fragrant",
+  title: "Mister Fragrant Reviews",
   description: "Stay cool. Smell great.",
 };
 
