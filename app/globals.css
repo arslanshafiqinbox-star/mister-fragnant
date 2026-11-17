@@ -42,7 +42,8 @@ body {
 }
 
 .five-title {
-  transform: none;
+  transform: rotate(-2.5deg);
+  transform-origin: 0 0;
 }
 
 @keyframes ticker-slide {
