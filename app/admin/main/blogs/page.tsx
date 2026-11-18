@@ -140,7 +140,7 @@ export default function AdminBlogsPage() {
     <div>
       <AdminPageHeader
         title="Blogs"
-        subtitle="Mister Fragrant's notes — create, edit, delete."
+        subtitle="Notes — create, edit, delete."
         action={
           <button
             type="button"

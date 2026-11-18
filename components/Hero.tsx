@@ -13,7 +13,7 @@
 // function Stamp({
 //   className,
 //   rotate = "10deg",
-//   alt = "Mister Fragrant postage stamp",
+//   alt = "Fragrant Reviews postage stamp",
 // }: {
 //   className?: string;
 //   rotate?: string;

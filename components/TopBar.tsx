@@ -94,7 +94,7 @@ export default function TopBar() {
           href="/"
           className="-ml-1 shrink-0 whitespace-nowrap font-[family-name:var(--font-logo)] text-[1.15rem] leading-none text-brand-cream sm:text-[1.4rem]"
         >
-          Mister Fragrant Reviews
+          Fragrant Reviews
         </Link>
 
         <nav className="hidden items-center gap-5 md:flex lg:gap-7">

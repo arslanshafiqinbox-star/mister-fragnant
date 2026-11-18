@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const CONTACT_TO = process.env.CONTACT_TO_EMAIL || "mk0906145@gmail.com";
+const CONTACT_TO = process.env.CONTACT_TO_EMAIL || "hello@fragrantreviews.com";
 
 export async function sendContactEmail({
   name,
@@ -29,10 +29,10 @@ export async function sendContactEmail({
   });
 
   await transporter.sendMail({
-    from: `"Mister Fragrant" <${user}>`,
+    from: `"Fragrant Reviews" <${user}>`,
     to: CONTACT_TO,
     replyTo: email,
-    subject: `[Mister Fragrant] ${topic} — ${name}`,
+    subject: `[Fragrant Reviews] ${topic} — ${name}`,
     text: [
       `Name: ${name}`,
       `Email: ${email}`,

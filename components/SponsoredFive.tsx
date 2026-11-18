@@ -156,7 +156,7 @@ export default function SponsoredFive() {
     <section className="bg-brand-blue px-5 pb-12 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
         <h2 className="five-title relative z-10 mb-4 inline-block cursor-default border-[3px] border-black bg-brand-cream px-5 py-2.5 font-[family-name:var(--font-hero-serif)] text-[1.35rem] font-semibold leading-none tracking-[-0.02em] text-black shadow-[5px_5px_0_#000] sm:mb-5 sm:px-6 sm:text-[1.65rem]">
-          Mister Fragrant&apos;s Five
+          Featured
         </h2>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
